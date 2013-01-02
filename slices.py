@@ -50,23 +50,25 @@ def array_calc():
       for r3 in range(r2, 98):
         for r4 in range(r3, 99):
           for r5 in range(r4, 100):
-            # calculate the array:
-            current_solution=[r1,r2,r3,r4,r5,100]
-            areas=[]
-            neighbor_area=0
-            for radius in current_solution:
-              this_area=radius*radius*tri_base
-              areas.append(this_area-neighbor_area)
-              neighbor_area=this_area
-            current_deviation=0
-            mean=numpy.mean(areas)
-            for area in areas:
-              current_deviation=current_deviation + math.pow(area-mean,2)
-            current_deviation = math.sqrt(current_deviation/6.0)
-            if current_deviation < best_deviation:
-              best_deviation = current_deviation
-              best_solution = current_solution
-              print current_deviation
+            #only look at possible solutions:
+            if (100-r5)<=(r5-r4) and (r5-r4)<=(r4-r3) and (r4-r3)<=(r3-r2) and (r3-r2)<=(r2-r1) and (r2-r1)<=r1:
+              # calculate the array:
+              current_solution=[r1,r2,r3,r4,r5,100]
+              areas=[]
+              neighbor_area=0
+              for radius in current_solution:
+                this_area=radius*radius*tri_base
+                areas.append(this_area-neighbor_area)
+                neighbor_area=this_area
+              current_deviation=0
+              mean=numpy.mean(areas)
+              for area in areas:
+                current_deviation=current_deviation + math.pow(area-mean,2)
+              current_deviation = math.sqrt(current_deviation/6.0)
+              if current_deviation < best_deviation:
+                best_deviation = current_deviation
+                best_solution = current_solution
+                print current_deviation
   print 'best solution:'
   print best_solution
 
