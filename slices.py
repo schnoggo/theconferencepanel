@@ -17,9 +17,12 @@
 
 import sys
 import re
+import math
+import numpy
 
 best_solution=[]
-best_deviation=100000
+best_deviation=1000000
+tri_base=math.tan(9)
 
 """Normalize Radial Segment Wedge Area
 We'll be dealing in percentages, so total radius is 100 units.
@@ -34,79 +37,53 @@ and
 
 So our innermost ring is at least 100/6 (approx 17)
 """
-
-def extract_names(filename):
-  """
-  Given a file name for baby.html, returns a list starting with the year string
-  followed by the name-rank strings in alphabetical order.
-  ['2006', 'Aaliyah 91', Aaron 57', 'Abagail 895', ' ...]
-  """
-  # +++your code here+++
-  # year is actually in the file name: "baby1990.html"
-  names=[]
-  ranks={}
-  year_match = re.search(r'baby(\d\d\d\d).html', filename)
-  if not year_match:
-    # We didn't find a year, so we'll exit with an error message.
-    sys.stderr.write('Couldn\'t find the year!\n')
-    sys.exit(1)
-  year = year_match.group(1)
-  names.append(year)
-  
-  f = open(filename, 'rU')
-  for line in f:   ## iterates over the lines of the file
-    thisrec=re.search(r'<td>(\d+)</td><td>(\w+)</td>\<td>(\w+)</td>', line)
-    if thisrec:
-      boyname=thisrec.group(2)
-      girlname=thisrec.group(3)
-      rank=int(thisrec.group(1))
-      if boyname not in ranks:
-        ranks[boyname]={'boy':rank}
-      else:
-        if 'boy' not in ranks[boyname]:
-          ranks[boyname]['boy']=rank
-          
-      if girlname not in ranks:
-        ranks[girlname]={'girl':rank}
-      else:
-        if 'girl' not in ranks[girlname]:
-          ranks[girlname]['girl']=rank
-          
-  f.close()
+def array_calc():
+  global best_solution
+  global best_deviation
+  global tri_base
+  current_solution=[]
  
-  for name in ranks.keys():
-    this_line = name + '('
-    this_line += ', '.join([ gender  + ': ' + str(ranks[name][gender]) for gender in ranks[name].keys() ])
-    this_line += ')'
-    names.append( this_line)
-  return names
+  # A quirk of the Python "range" function is that it does not include the end value. 
+  # So all these range ends are one beyonf the actual end.
+  for r1 in range(17, 96):
+    for r2 in range(r1, 97):
+      for r3 in range(r2, 98):
+        for r4 in range(r3, 99):
+          for r5 in range(r4, 100):
+            # calculate the array:
+            current_solution=[r1,r2,r3,r4,r5,100]
+            areas=[]
+            neighbor_area=0
+            for radius in current_solution:
+              this_area=radius*radius*tri_base
+              areas.append(this_area-neighbor_area)
+              neighbor_area=this_area
+            current_deviation=0
+            mean=numpy.mean(areas)
+            for area in areas:
+              current_deviation=current_deviation + math.pow(area-mean,2)
+            current_deviation = math.sqrt(current_deviation/6.0)
+            if current_deviation < best_deviation:
+              best_deviation = current_deviation
+              best_solution = current_solution
+              print current_deviation
+  print 'best solution:'
+  print best_solution
 
 
 
 def main():
-  # This command-line parsing code is provided.
-  # Make a list of command line arguments, omitting the [0] element
-  # which is the script itself.
   args = sys.argv[1:]
-
+  array_calc()
+"""
   if not args:
-    #print 'usage: [--summaryfile] file [file ...]'
-    #sys.exit(1)
-    args =['baby1990.html']
+    print 'usage: [--todir dir] logfile '
+    sys.exit(1)
 
-  # Notice the summary flag and remove it from args if it is present.
-  summary = False
-  if args[0] == '--summaryfile':
-    summary = True
-    del args[0]
-
-  # +++your code here+++
-  # For each filename, get the names, then either print the text output
-  # or write it to a summary file
-  for filename in args:
-    names = extract_names(filename)
-    text = '\n'.join(names)
-    print text
-  
+  todir = ''
+  if args[0] == '--todir':
+    todir = args[1]
+    del args[0:2]
+"""
 if __name__ == '__main__':
   main()
