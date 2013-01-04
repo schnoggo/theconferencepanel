@@ -45,7 +45,7 @@ def array_calc():
  
   # A quirk of the Python "range" function is that it does not include the end value. 
   # So all these range ends are one beyonf the actual end.
-  for r1 in range(17, 18):
+  for r1 in range(24, 25):
     for r2 in range(r1, 97):
       for r3 in range(r2, 98):
         for r4 in range(r3, 99):
@@ -55,7 +55,7 @@ def array_calc():
               # calculate the array:
               current_solution=[r2,r3,r4,r5,100]
               areas=[]
-              neighbor_area=17*17*tri_base
+              neighbor_area=17*17*tri_base #take out the center disk
               for radius in current_solution:
                 this_area=radius*radius*tri_base
                 areas.append(this_area-neighbor_area)
