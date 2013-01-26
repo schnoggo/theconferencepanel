@@ -133,47 +133,138 @@ void LavaTest(){
   // Serial.print("TestSpokes() ... ");
   int startingmode = displaymode;
   int generation, i, j;
-  int left, right, above, below;
-  uint8_t map[MAX_DISPLAY_ANGLE+1][MAX_DISPLAY_RADIUS+1];
+int nx, ny, neighbor;
+  uint8_t f[MAX_DISPLAY_ANGLE+1][MAX_DISPLAY_RADIUS+1][2]; // o=age, 1=color
+  uint8_t last_gen[MAX_DISPLAY_ANGLE+1][MAX_DISPLAY_RADIUS+1][2];
+  uint8_t neighbor_list[8][2];
+  uint8_t neighbor_count = 0;
   int drift, c;
+  uint32_t color_list[16];
+
+  for (i=1; i <16; i++) {
+    color_list[0]=0;
+      color_list[i]=Color(random(256), random(256), random(256));
+  }
   generation=0;
+  // Initialize board with random ages
      for (j=0; j <=MAX_DISPLAY_ANGLE; j++) {
         for (i=0; i <=MAX_DISPLAY_RADIUS; i++) {
-          map[j][i]=random(256);
-          setPolarPixelColor(j, i, Wheel(map[j][i]));
+          f[j][i][1]=0;
+          f[j][i][0]=random(256);
+          setPolarPixelColor(j, i, color_list[f[j][i][1]]);
         }
      }   
   strip.show();
   
   while (displaymode == startingmode) {
-        ServiceBackground(); 
+        //ServiceBackground();
+        BackGroundDelay(40);
+        // copy last gen:
+       for (j=0; j <=MAX_DISPLAY_ANGLE; j++) {
+        for (i=0; i <=MAX_DISPLAY_RADIUS; i++) {
+          last_gen[j][i][0]=f[j][i][0];
+          last_gen[j][i][1]=f[j][i][1];
+        }
+       }
+       if (generation++ >30) {
+         // drop a seed crystal
+        generation=0;
+        nx=random(MAX_DISPLAY_ANGLE+1);
+        ny=random(MAX_DISPLAY_RADIUS+1);
+        last_gen[nx][ny][1]=color_list[random(16)];
+        last_gen[nx][ny][0]=255;
+       }   
+          
       for (j=0; j <=MAX_DISPLAY_ANGLE; j++) {
         for (i=0; i <=MAX_DISPLAY_RADIUS; i++) {
           // find neighbors:
-          if (j<1) {
-            left=MAX_DISPLAY_ANGLE;
-          } else {
-            left=j-1;
+          neighbor_count = 0;
+          // (-1,-1) - NW
+          if (i>0 && j>0) {
+            neighbor_list[neighbor_count][0]=j-1;
+            neighbor_list[neighbor_count][1]=i-1;
+            neighbor_count++;
           }
           
-          if (i<1) {
-            above=MAX_DISPLAY_RADIUS;
-          } else {
-            above=i-1;
+          // (-1,0) W
+          if (j>0 ) {
+            neighbor_list[neighbor_count][0]=j-1;
+            neighbor_list[neighbor_count][1]=i;
+            neighbor_count++;
           }
           
-          drift=random(3)-1;
-          c=map[j][i]+drift;
-          if (c>255){c=254;}
-          if (c<0){c=1;}
-          setPolarPixelColor(j, i, Wheel(c));
-          map[j][i]=c;
-     
+          // (-1,+1) SW
+          if (j>0 && i<MAX_DISPLAY_RADIUS) {
+            neighbor_list[neighbor_count][0]=j-1;
+            neighbor_list[neighbor_count][1]=i+1;
+            neighbor_count++;
+          }
+          
+          // (0,-1) N
+          if ( i>0) {
+            neighbor_list[neighbor_count][0]=j;
+            neighbor_list[neighbor_count][1]=i-1;
+            neighbor_count++;
+          }
+          
+           // (0,-1) S
+          if ( j>0) {
+            neighbor_list[neighbor_count][0]=j-1;
+            neighbor_list[neighbor_count][1]=i;
+            neighbor_count++;
+          }
+          
+           // (+1,+1) SE
+          if ( j<MAX_DISPLAY_ANGLE && i<MAX_DISPLAY_RADIUS) {
+            neighbor_list[neighbor_count][0]=j+1;
+            neighbor_list[neighbor_count][1]=i+1;
+            neighbor_count++;
+          }
+          
+           // (+1,0) E
+          if ( j<MAX_DISPLAY_ANGLE ) {
+            neighbor_list[neighbor_count][0]=j+1;
+            neighbor_list[neighbor_count][1]=i;
+            neighbor_count++;
+          }
+          
+           // (+1,-1) NE
+          if ( j<MAX_DISPLAY_ANGLE && i>0) {
+            neighbor_list[neighbor_count][0]=j+1;
+            neighbor_list[neighbor_count][1]=i-1;
+            neighbor_count++;
+          }
+          
+        // pick a random neighbor:
+        neighbor=random(neighbor_count);
+        // perform generation update:
+        nx=neighbor_list[neighbor][0];
+        ny= neighbor_list[neighbor][1];
+        if (last_gen[nx][ny][1] != last_gen[j][i][1]){ //different colors?
+        // make sure they live a little while:
+        if (last_gen[nx][ny][0]<230){
+          if ( random(last_gen[j][i][0]) > random(last_gen[nx][ny][0])){
+            // infect neighboring cell
+            f[nx][ny][0]=255;
+            f[nx][ny][1]=last_gen[j][i][1];
+          }
+        }
+        }
       
         }
      } 
-     
-    generation++;
+   // update generation and display  
+            for (j=0; j <=MAX_DISPLAY_ANGLE; j++) {
+        for (i=0; i <=MAX_DISPLAY_RADIUS; i++) {
+                 setPolarPixelColor(j, i, color_list[f[j][i][1]]);
+                 if (f[j][i][0]>0){
+                   f[j][i][0]=f[j][i][0]-1;
+                 }
+
+        }
+       }
+       
+
      strip.show();
     BackGroundDelay(10);
   }
