@@ -34,9 +34,12 @@ unsigned int audio_history[AUDIOBUFFERLEN]; // 16 bit samples
 unsigned int audio_history_pointer = 0;
 uint8_t  adc_save;                          // Default ADC mode
 unsigned long last_sample_time = 0;
+unsigned long sample_window_start = 0;
+unsigned long sample_window_max = 0;
+unsigned long sample_window_min = 1024;
 unsigned long avg_audio_sample = 0;
-unsigned long avg_audio_accumulator = 0; // sum of the audio_history array
-unsigned long max_seen_volume =0;
+#define CONVERT33TO5V 5/3.3;
+
 #define AUDIO_IN_PIN 2
 
 // Declarations for our interupt processing and background display ticklers:
@@ -47,9 +50,7 @@ int seen_up_0 =0;
 
 
 char* module_names[]={"Ring Meter", "VU Meter", "Zoom",
-"Spinner", "Fade Grid","Light Panel"};
-
-
+"Spinner", "Infection","Light Panel"};
 
 void setup() {
 	InitPolarCoords();
@@ -220,25 +221,38 @@ void UpdateSampledAudio(){
   
   
   unsigned long now = millis();
-   unsigned int current_sample; // 16 bit
+  unsigned int current_sample; // 16 bit
   // globals:
-  //  audio_history (array)
-  //  audio_history_pointer (int) pointer into array
   //  avg_audio_sample (long)
-  //  avg_audio_accumulator (long)
-  //  max_seen_volume (long)
-  
-  #define AUDIOBUFFERLEN 128
-    current_sample=analogRead(AUDIO_IN_PIN);
-    last_sample_time=now;
-    max_seen_volume=max(max_seen_volume,current_sample);
-    avg_audio_accumulator=avg_audio_accumulator-audio_history[audio_history_pointer]+current_sample;
-    avg_audio_sample=avg_audio_accumulator/AUDIOBUFFERLEN;
-    audio_history_pointer++;
-    if (audio_history_pointer>=AUDIOBUFFERLEN){
-      audio_history_pointer=0;
+// last_sample_time
+// sample_window_start
+// sample_window_max
+ 
+  if ((now - last_sample_time)>8){ // don't try to read too fast
+    if ((now -  sample_window_start)<64){
+      // within the window
+      current_sample=analogRead(AUDIO_IN_PIN);
+      last_sample_time = now;
+      if (current_sample<150) {current_sample=0;} // just noise
+      if (current_sample<1024){ // discard values over 1023 (apparently can be noise)
+        if (current_sample>sample_window_max){
+          sample_window_max=current_sample;
+        }
+        if (current_sample<sample_window_min){
+          sample_window_min=current_sample;
+        }
+      }
+      
+    } else {
+      // start a new sample window
+      avg_audio_sample = abs(sample_window_max - sample_window_min);
+      avg_audio_sample = avg_audio_sample*CONVERT33TO5V; //scale the 3.3 volt to 5v (3.3 power is cleaner)
+      sample_window_start = now;
+      sample_window_max=0;
+      sample_window_min=1024;
+      
     }
-  
+  }
 }
 //Input a value 0 to 255 to get a color value.
 //The colours are a transition r - g -b - back to r
@@ -296,10 +310,7 @@ void BackGroundDelay(unsigned long delay_milliseconds){
 void ServiceBackground(){
   unsigned long now = millis();
   int text_color = LED_GREEN;
-
-  if ( (now - last_sample_time) > 15){
     UpdateSampledAudio();
-  }
   
     
   if ( (now - last_ribbon_update) > 30){

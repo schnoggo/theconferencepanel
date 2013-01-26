@@ -298,12 +298,12 @@ void TestSpokes(){
 
 void VUMeter(){
   // Serial.print("TestSpokes() ... ");
-  unsigned int display_spokes = MAX_DISPLAY_ANGLE; // number of "spokes" in display (1 based)
+  unsigned int display_spokes = MAX_DISPLAY_ANGLE; // number of "spokes" in display (0 based)
   unsigned int startingmode = displaymode;
   int i,j;
   unsigned int analog_reading = 0;
   unsigned int last_display_value, new_display_value = 0;
-  int slice_width;
+  float slice_width;
   
 
   uint32_t clr;
@@ -311,36 +311,31 @@ void VUMeter(){
   
   // Clear the display:
      for (i=0; i < display_spokes; i++) { // light up left ot right
-      LightSpoke(i,0);
+      LightSpoke(i,0); // turn it off
     }
     clr=Color(256, 256, 100);
   while (displaymode == startingmode) {
   
- //  analog_reading = analogRead(AUDIO_IN_PIN); // eventually change this to an averaged sample
-   analog_reading = avg_audio_sample; // global
-
-     max_seen_volume=max(max_seen_volume,analog_reading); // last second update in case we just got louder
+  // analog_reading = analogRead(AUDIO_IN_PIN); // eventually change this to an averaged sample
+   analog_reading = avg_audio_sample;
+   if (analog_reading>1023){analog_reading=1023;} //little sanity check
+   slice_width=1023/(MAX_DISPLAY_ANGLE+1);
+   new_display_value = (analog_reading/slice_width) + .5; // round it back into the unsigned int
+   
+ //  analog_reading = avg_audio_sample; // global
+/*
+   max_seen_volume=max(max_seen_volume,analog_reading); // last second update in case we just got louder
    max_seen_volume=max(max_seen_volume,14); // don't let it be zero
    slice_width = (max_seen_volume/display_spokes); // inside the loop since it can change
    // scale the values for the display:
     new_display_value = min((display_spokes -1),(analog_reading / max_seen_volume));
   // Serial.print("raw value ");
   // Serial.println(analog_reading);
+ */
    
-   
-   /*
-   new_display_value = random(6);
-   new_display_value = analog_reading *6 / 1024;
-   */
-   if (new_display_value != last_display_value){
-    LightSpoke(new_display_value,Color(random(256), random(256), random(256)));
-     LightSpoke(last_display_value,0);
-    last_display_value = new_display_value;
-   }
 
    
-   
- /*  
+ 
    if (new_display_value > last_display_value) {
     for (i=last_display_value+1; i <= new_display_value; i++) { // light up left ot right
       LightSpoke(i,clr);
@@ -353,7 +348,7 @@ void VUMeter(){
     }  
    }
    // and do nothing if the values are equal.
-*/
+
      
      BackGroundDelay(60);
   }
