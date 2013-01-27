@@ -302,42 +302,47 @@ void VUMeter(){
   unsigned int startingmode = displaymode;
   int i,j;
   unsigned int analog_reading = 0;
-  unsigned int last_display_value, new_display_value = 0;
+  int last_display_value, new_display_value = 0;
   float slice_width;
-  
-
   uint32_t clr;
-  
+
   
   // Clear the display:
      for (i=0; i < display_spokes; i++) { // light up left ot right
       LightSpoke(i,0); // turn it off
     }
     clr=Color(256, 256, 100);
+    // draw the first bar:
+    last_display_value=0;
+    LightSpoke(0,clr);
   while (displaymode == startingmode) {
   
   // analog_reading = analogRead(AUDIO_IN_PIN); // eventually change this to an averaged sample
    analog_reading = avg_audio_sample;
-   if (analog_reading>1023){analog_reading=1023;} //little sanity check
-   slice_width=1023/(MAX_DISPLAY_ANGLE+1);
-   new_display_value = (analog_reading/slice_width) + .5; // round it back into the unsigned int
-   
- //  analog_reading = avg_audio_sample; // global
+   if (analog_reading>1022){analog_reading=1022;} //little sanity check and cap prevention
+   slice_width=1024/(MAX_DISPLAY_ANGLE+2); // extra slice for "0," extra range to prevent hitting cap
+  new_display_value = analog_reading/slice_width; // round it back into the unsigned int
+  // new_display_value is now 0-10
+  new_display_value--; // -1 to 9
+  
 /*
-   max_seen_volume=max(max_seen_volume,analog_reading); // last second update in case we just got louder
-   max_seen_volume=max(max_seen_volume,14); // don't let it be zero
-   slice_width = (max_seen_volume/display_spokes); // inside the loop since it can change
-   // scale the values for the display:
-    new_display_value = min((display_spokes -1),(analog_reading / max_seen_volume));
-  // Serial.print("raw value ");
-  // Serial.println(analog_reading);
- */
-   
+   Serial.print("analog ");
+   Serial.print(analog_reading);
+   Serial.print(",  scaled: ");
+   Serial.print(new_display_value);
+   Serial.print(",  last: ");
+   Serial.println(last_display_value);
+  */
 
    
- 
+/*
+     if (new_display_value < 0) {
+       for (i=last_display_value; i= 0; i--)
+       LightSpoke(i,0);
+       last_display_value = new_display_value;
+     } else {
    if (new_display_value > last_display_value) {
-    for (i=last_display_value+1; i <= new_display_value; i++) { // light up left ot right
+    for (i=last_display_value+1; i <= new_display_value; i++) { // light up left to right
       LightSpoke(i,clr);
       last_display_value = new_display_value;
     }
@@ -347,10 +352,28 @@ void VUMeter(){
      last_display_value = new_display_value;
     }  
    }
+     }
    // and do nothing if the values are equal.
+*/
 
+     for (i=0; i <= display_spokes; i++) { // light up left ot right
+     if (i<5){
+       clr=Color(20, 255, 20);
+     } else {
+       if (i<8){
+         clr=Color(255, 255, 00);
+       } else {
+         clr=Color(255, 00, 00);
+       }
+     }
+     if (i <= new_display_value){
+      LightSpoke(i,clr);
+     } else {
+       LightSpoke(i,0); // turn it off
+     }
+    }
      
-     BackGroundDelay(60);
+     BackGroundDelay(30);
   }
   //Serial.println("TestSpokes cleanup");
 }
