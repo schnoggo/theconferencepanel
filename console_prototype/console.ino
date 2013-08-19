@@ -19,24 +19,19 @@ Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 #define BACKLIGHT_WHITE 0x7
 
 
-#define CONSOLE_GO 1
-#define CONSOLE_STOP 2
-#define CONSOLE_CANCEL 3
-
 #define CONSOLE_GO_PIN 5
 #define CONSOLE_STOP_PIN 7
 #define CONSOLE_CANCEL_PIN 6
 
 #define TICKDURATION 2000
 
-uint8_t mode_instructions[9][6]; // global array of coordinate->pixel conversion
 unsigned long next_tick = 0;
 int current_mode = 0;
-char* mode_names[]  ={"Initializing", "Idle", "Start Question", "Start Timer",
-"Wait for Answer", "Correct?","Wait For Steal", "Callibrate: 1"};
-  
-  
+
+char* playerNames[10][16]; // create space for player names
+
 void setup() {
+  uint8_t i;
   // Debugging output
   Serial.begin(9600);
   // set up the LCD's number of columns and rows: 
@@ -44,27 +39,13 @@ void setup() {
 next_tick = millis() + TICKDURATION;
  
  
-  // program the modes:
-  
-  // start by seroeing out:
-   int generation, i, j;
-    for (j=0; j <9; j++) {
-      for (i=0; i <6; i++) {
-       mode_instructions[j][i] = 0;
-      }
+ 
+    for (i=0; i < 10; i++){
+   //   playerNames[i]="goober";
     }
-    
-  
-  mode_instructions[0][0]=0; // GO: Start Question
-  mode_instructions[0][1]=0; // STOP
-  mode_instructions[0][2]=0; // CANCEL
-  mode_instructions[0][3]=1; // timer
-  mode_instructions[0][4]=0; // buzzer
-  mode_instructions[0][5]=0; // animation
-  
-  mode_instructions[1][0]=1; // GO: Start Question
 
-  DisplayModeTitle(mode_names[3]);
+  
+  // DisplayModeTitle(FetchFrameName[3]);
   
   lcd.setBacklight(BACKLIGHT_RED);
 }
@@ -86,7 +67,7 @@ void loop() {
     if ( current_mode>6) {
       current_mode = 0;
     }
-    DisplayModeTitle(mode_names[current_mode]);
+    DisplayModeTitle(FetchFrameName(current_mode));
     lcd.setBacklight(random(5)+1);
     
   }
