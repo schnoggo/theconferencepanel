@@ -31,9 +31,22 @@ int current_mode = 0;
 
 char* playerNames[10][16]; // create space for player names
 char lcd_line2[17]; // leave room for the terminating zero
+char player_status[16]; //signed 8 bit
+
+typedef struct {
+ byte lastbutton; // which button was "down" during last poll
+ byte state;     // 0:still open,  1:from open to closed 2:from closed to closed 3:still closed
+ unsigned int lastvalue; // last actual value from the pin
+ unsigned long lastread; // time of last read
+ unsigned long lastclosed; // time of last read that was closed
+  byte pin; // which line are we reading?
+
+} ButtonLine;
+
+ButtonLine buttonLines[4];
 
 void setup() {
-  uint8_t i;
+  byte i;
   // Debugging output
   Serial.begin(9600);
   // set up the LCD's number of columns and rows: 
@@ -51,7 +64,7 @@ next_tick = millis() + TICKDURATION;
    //   playerNames[i]="goober";
     }
 
-  uint8_t framecode[5];
+  byte framecode[5];
  
   
   FetchGameInstruction(1,1,&framecode[0]); // pass pointer to first elemnt of our instruction array
@@ -60,8 +73,8 @@ next_tick = millis() + TICKDURATION;
 
 void loop() {
   unsigned long now = millis();
-  uint8_t last_console_button = 0;
-  uint8_t new_console_button = 0;
+  byte last_console_button = 0;
+  byte new_console_button = 0;
  // int cval = PollUserButtons();
   new_console_button = PossConsoleButtons();
   if (new_console_button != last_console_button){
@@ -93,7 +106,7 @@ void loop() {
 
 }
 
-uint8_t PollUserButtons() {
+byte PollUserButtons() {
 /* 
 Inputs: none (just globals)
 Hardware: Uses 3 analog pins to determine which button is being pushed
@@ -107,28 +120,33 @@ Globals: UserButton{
     }
     lastread: unsigned long time of last read
     lastclosed: unsigned long time of last read that was closed
+    TEAM1PIN
+    
+ Outputs:
+   updates UserButton
+   returns player number of newly pressed button
     */
-    
-    
+    unsigned int v;
+      v=analogRead(TEAM1PIN);
     
 
   
   
 }
-uint8_t PossConsoleButtons(){
+byte PossConsoleButtons(){
   
   
 }
 void DisplayModeTitle(char* title){
   /* this version add 2K to the binary! try it without the string libraries
   // erase the line buy padding out the title with spaces
-  uint8_t strlen = title.length();
+  byte strlen = title.length();
   int leftpad = (16-strlen)/2;
   String outStr = "                ";
   if ( strlen == 15 ) {
   outStr = title;
   } else if (leftpad>0) {  //center
-  uint8_t i;
+  byte i;
     for (i=0; i <strlen; i++) {
       outStr.setCharAt(i+leftpad, title.charAt(i+leftpad-1) );
     }
@@ -139,11 +157,11 @@ void DisplayModeTitle(char* title){
   */
   
    // erase the line buy padding out the title with spaces
-  uint8_t titlelen = strlen(title);
+  byte titlelen = strlen(title);
   int leftpad = (16-titlelen)/2;
   //char* outStr = "                ";
   char* outStr = "----------------";
-  uint8_t i, cursor_start ;
+  byte i, cursor_start ;
   for (i=0; i <16; i++) {
       outStr[i] = ' ';
     }
