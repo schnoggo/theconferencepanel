@@ -18,6 +18,7 @@ Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 #define BACKLIGHT_VIOLET 0x5
 #define BACKLIGHT_WHITE 0x7
 
+#define TEAM1PIN 0
 
 #define CONSOLE_GO_PIN 5
 #define CONSOLE_STOP_PIN 7
@@ -29,6 +30,7 @@ unsigned long next_tick = 0;
 int current_mode = 0;
 
 char* playerNames[10][16]; // create space for player names
+char lcd_line2[17]; // leave room for the terminating zero
 
 void setup() {
   uint8_t i;
@@ -36,6 +38,11 @@ void setup() {
   Serial.begin(9600);
   // set up the LCD's number of columns and rows: 
   lcd.begin(16, 2);
+  
+   pinMode (TEAM1PIN, INPUT); // Without this analogRead always returns 0
+    analogRead (TEAM1PIN) ; // do a dummy read to get the pin in the right state?
+
+
 next_tick = millis() + TICKDURATION;
  
  
@@ -44,10 +51,11 @@ next_tick = millis() + TICKDURATION;
    //   playerNames[i]="goober";
     }
 
+  uint8_t framecode[5];
+ 
   
-  // DisplayModeTitle(FetchFrameName[3]);
-  
-  lcd.setBacklight(BACKLIGHT_RED);
+  FetchGameInstruction(1,1,&framecode[0]); // pass pointer to first elemnt of our instruction array
+ 
 }
 
 void loop() {
@@ -67,10 +75,21 @@ void loop() {
     if ( current_mode>6) {
       current_mode = 0;
     }
+
     DisplayModeTitle(FetchFrameName(current_mode));
     lcd.setBacklight(random(5)+1);
+      unsigned int current_sample; // 16 bit
+  current_sample=analogRead(TEAM1PIN);
+  
+  itoa( current_sample, lcd_line2, 10);
+  lcd.setCursor(0, 1);
+  lcd.print(lcd_line2);
+  lcd.print("  ");
     
   }
+
+
+
 
 }
 

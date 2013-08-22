@@ -14,7 +14,7 @@
 #define PAUSE 4
 #define PLAYER 2
 
-const uint8_t mode_instructions[11][5] PROGMEM = {
+const uint8_t mode_instructions[11][5]  = {
   {2,0,0,0,HOST},
 {3,0,0,0,HOST},
 {0,0,0,0,HOST},
@@ -28,13 +28,26 @@ const uint8_t mode_instructions[11][5] PROGMEM = {
 {0,0,0,0,ANIM_WIN}
 };
 
- char* mode_names[] PROGMEM  ={"Initializing", "Idle", "Start Question", "Start Timer",
+ char* mode_names[]   = {"Initializing", "Idle", "Start Question", "Start Timer",
 "Wait for Answer", "Correct?","Wait For Steal", "Callibrate: 1"};
   
   
-uint8_t FetchGameInstruction(uint8_t) {
+void FetchGameInstruction(uint8_t mode, uint8_t frame, uint8_t *instruction_list) {
+  /*
+  mode - byte - which game mode JUMPBALL, LIGHTNING, etc.
+  frame - byte - frame which is being displayed
+  instruction_list - pointer - 5 element array for the return values
+  */
 }
-
+/*
+void FetchFrameName(uint8_t f, char retStr[]) {
+ // return mode_names[f];
+ strcpy(retStr, mode_names[f]);
+}
+*/
 char* FetchFrameName(uint8_t f) {
+  Serial.println(mode_names[f]);
+ // DisplayModeTitle(mode_names[f]);
   return mode_names[f];
+
 }
