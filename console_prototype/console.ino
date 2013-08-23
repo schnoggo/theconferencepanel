@@ -19,6 +19,7 @@ Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 #define BACKLIGHT_WHITE 0x7
 
 #define TEAM1PIN 0
+#define TEAM2PIN 1
 
 #define CONSOLE_GO_PIN 5
 #define CONSOLE_STOP_PIN 7
@@ -27,10 +28,12 @@ Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 #define TICKDURATION 2000
 
 unsigned long next_tick = 0;
-int current_mode = 0;
 
-char* playerNames[10][16]; // create space for player names
 char lcd_line2[17]; // leave room for the terminating zero
+
+// Buttons, Teams, and Players:
+char* playerNames[10][16]; // create space for player names
+
 char player_status[16]; //signed 8 bit
 
 typedef struct {
@@ -43,7 +46,24 @@ typedef struct {
 
 } ButtonLine;
 
-ButtonLine buttonLines[4];
+byte last_player_pressed = 0;
+
+#define NUMBEROFTEAMS 2 // should be able to support 3 teams with an Uno
+ButtonLine buttonLines[NUMBEROFTEAMS+1]; // 0th "team" is console
+
+// Game Modes
+#define GAME_TEAM_STEAL 0
+#define GAME_LIGHTNING 1
+#define GAME_ALL_PLAY 2
+int current_mode = 0;
+
+// Timers:
+typedef struct {
+ byte state;     // 0:running,  1:expired, 2 paused,  -1:no clock
+ unsigned long start_time; // when started or time paused
+ unsigned long end_time; // when the clock expires, or how much remains if paused
+} timer;
+timer GameTimer; // global game time
 
 void setup() {
   byte i;
@@ -64,29 +84,30 @@ next_tick = millis() + TICKDURATION;
    //   playerNames[i]="goober";
     }
 
-  byte framecode[5];
- 
   
-  FetchGameInstruction(1,1,&framecode[0]); // pass pointer to first elemnt of our instruction array
- 
 }
 
 void loop() {
   unsigned long now = millis();
   byte last_console_button = 0;
-  byte new_console_button = 0;
- // int cval = PollUserButtons();
-  new_console_button = PossConsoleButtons();
+  byte playernum = PollUserButtons();
+  /*
   if (new_console_button != last_console_button){
     
+  }
+  */
+  if (last_player_pressed != playernum){
+    StartCountdown(10);
     
   }
 
   if (now > next_tick) {
     next_tick = millis() + TICKDURATION;
     current_mode++;
+     UpdateGameState();
     if ( current_mode>6) {
       current_mode = 0;
+     
     }
 
     DisplayModeTitle(FetchFrameName(current_mode));
@@ -98,10 +119,12 @@ void loop() {
   lcd.setCursor(0, 1);
   lcd.print(lcd_line2);
   lcd.print("  ");
-    
+
   }
-
-
+//
+ lcd.setCursor(10, 1);
+  lcd.print(GetCountdownSeconds());
+lcd.print("  ");
 
 
 }
@@ -126,37 +149,44 @@ Globals: UserButton{
    updates UserButton
    returns player number of newly pressed button
     */
+    byte retPlayer=0;
     unsigned int v;
       v=analogRead(TEAM1PIN);
     
+if (v<100){
+  retPlayer = 1;
+}
+  
+  return retPlayer;
+}
 
+
+void UpdateGameState(){
+ byte framecode[5];
+ 
   
-  
+  FetchGameInstruction(0,3,&framecode[0]); // pass pointer to first elemnt of our instruction array
+ /*
+  Serial.print("Frame 0: ");
+   Serial.print(framecode[0]);
+    Serial.print(",  ");
+ Serial.print(framecode[1]);
+    Serial.print(",  ");
+ Serial.println(framecode[2]);
+ */
+ 
 }
-byte PossConsoleButtons(){
-  
-  
-}
+
+
 void DisplayModeTitle(char* title){
-  /* this version add 2K to the binary! try it without the string libraries
-  // erase the line buy padding out the title with spaces
-  byte strlen = title.length();
-  int leftpad = (16-strlen)/2;
-  String outStr = "                ";
-  if ( strlen == 15 ) {
-  outStr = title;
-  } else if (leftpad>0) {  //center
-  byte i;
-    for (i=0; i <strlen; i++) {
-      outStr.setCharAt(i+leftpad, title.charAt(i+leftpad-1) );
-    }
-  } else { // too wide
-  leftpad = abs(leftpad);
-    outStr = title.substring(leftpad,leftpad+16);
-  }
+  /* Writes a centered line of text out to tthe LCD display.
+  
+  this version does not use the string library.
+  next version will not build intermediate char array - just write directly to display
+  
   */
   
-   // erase the line buy padding out the title with spaces
+   // erase the line by padding out the title with spaces
   byte titlelen = strlen(title);
   int leftpad = (16-titlelen)/2;
   //char* outStr = "                ";

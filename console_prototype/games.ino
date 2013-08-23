@@ -2,6 +2,11 @@
 #define CONSOLE_STOP 2
 #define CONSOLE_CANCEL 3
 
+/* games: (defined in console)
+GAME_TEAM_STEAL 0
+GAME_LIGHTNING 1
+GAME_ALL_PLAY 2
+*/
 // Screen types:
 #define ANIM_FAIL 6
 #define ANIM_GAME_OVER 9
@@ -14,7 +19,7 @@
 #define PAUSE 4
 #define PLAYER 2
 
-const uint8_t mode_instructions[11][5]  = {
+const byte mode_instructions[11][5]  = {
   {2,0,0,0,HOST},
 {3,0,0,0,HOST},
 {0,0,0,0,HOST},
@@ -32,22 +37,25 @@ const uint8_t mode_instructions[11][5]  = {
 "Wait for Answer", "Correct?","Wait For Steal", "Callibrate: 1"};
   
   
-void FetchGameInstruction(uint8_t mode, uint8_t frame, uint8_t *instruction_list) {
+void FetchGameInstruction(byte mode, byte frame, byte *instruction_list) {
   /*
-  mode - byte - which game mode JUMPBALL, LIGHTNING, etc.
+  mode - byte - which game mode GAME_TEAM_STEAL, GAME_LIGHTNING, etc.
   frame - byte - frame which is being displayed
   instruction_list - pointer - 5 element array for the return values
   */
+  byte i;
+  for (i=0; i < 5; i++){
+    instruction_list[i] = mode_instructions[frame][i];
+  }
+  
 }
-/*
-void FetchFrameName(uint8_t f, char retStr[]) {
- // return mode_names[f];
- strcpy(retStr, mode_names[f]);
-}
-*/
-char* FetchFrameName(uint8_t f) {
-  Serial.println(mode_names[f]);
- // DisplayModeTitle(mode_names[f]);
-  return mode_names[f];
 
+
+
+
+
+
+char* FetchFrameName(uint8_t f) {
+  // eventually rewrite this to use PROGMEN
+  return mode_names[f];
 }
