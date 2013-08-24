@@ -25,6 +25,12 @@ Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 #define CONSOLE_STOP_PIN 7
 #define CONSOLE_CANCEL_PIN 6
 
+#define GO_GO 0
+#define GO_STOP 1
+#define GO_TIMER 2
+#define GO_PLAYER 3
+#define GO_TYPE 4
+
 #define TICKDURATION 2000
 
 unsigned long next_tick = 0;
@@ -55,7 +61,22 @@ ButtonLine buttonLines[NUMBEROFTEAMS+1]; // 0th "team" is console
 #define GAME_TEAM_STEAL 0
 #define GAME_LIGHTNING 1
 #define GAME_ALL_PLAY 2
-int current_mode = 0;
+
+// Screen types:
+#define ANIM_FAIL 6
+#define ANIM_GAME_OVER 9
+#define ANIM_SINGLE_CORRECT 7
+#define ANIM_SINGLE_WRONG 8
+#define ANIM_TIME 10
+#define ANIM_WIN 5
+#define HOST 1
+#define LIGHTNING 3
+#define PAUSE 4
+#define PLAYER 2
+
+byte current_mode = 0;
+byte current_frame = 0;
+byte framecode[5]; // global array of this frame's instuctions
 
 // Timers:
 typedef struct {
@@ -97,8 +118,9 @@ void loop() {
     StartCountdown(10);
     
   }
-
-  if (now > next_tick) {
+UpdateGameState();
+byte buzzing;
+  /*if (now > next_tick) {
     next_tick = millis() + TICKDURATION;
     current_mode++;
      UpdateGameState();
@@ -119,6 +141,34 @@ void loop() {
   
 
   }
+  
+  */
+  if(framecode[GO_PLAYER]>0){
+    buzzing=PollUserButtons();
+    
+  }
+  
+  if(framecode[GO_GO]>0){
+    if(PollConsoleButtons(0)){
+      GoToFrame(framecode[GO_GO]);
+    }
+  }
+  
+   if(framecode[GO_STOP]>0){
+    if(PollConsoleButtons(1)){
+      GoToFrame(framecode[GO_STOP]);
+    }
+  } 
+  
+    
+   if(framecode[GO_TIMER]>0){
+    if(CountdownExpired()>0){
+      GoToFrame(framecode[GO_TIMER]);
+    }
+  }
+  
+  
+  
 //
  lcd.setCursor(10, 1);
   lcd.print(GetCountdownSeconds());
@@ -148,26 +198,56 @@ Globals: UserButton{
    returns player number of newly pressed button
     */
     byte retPlayer=0;
+    byte i;
+    byte team;
     unsigned int v;
-      v=analogRead(TEAM1PIN);
+      
+    for (i=1; i <= NUMBEROFTEAMS; i++) { // channel 0 is the console - start with 1
+      v=analogRead(buttonLines[i].pin);
+      if (v<1000){
+      retPlayer = i; // until we put the decoder in
+        team = i;
+      }
+    }
     
-if (v<100){
-  retPlayer = 1;
-}
-  v=analogRead(TEAM2PIN);
-  if (v<100){
-  retPlayer = 2;
-}
-  
   return retPlayer;
 }
 
-
-void UpdateGameState(){
- byte framecode[5];
- 
+byte PollConsoleButtons(byte lookingfor) {
+  /*
+  0 - GO button
+  1 - STOP button
+  */
+  byte retVal;
+  // this will eventually us ehte resistor ladder model.
+  // right now, we're just using digital pins
+  switch (lookingfor) {
+   case 0:
+  retVal = digitalRead(CONSOLE_GO_PIN);
+  break;
+  case 1:
+  retVal = digitalRead(CONSOLE_STOP_PIN);
+  break;
+  }
   
-  FetchGameInstruction(0,3,&framecode[0]); // pass pointer to first elemnt of our instruction array
+}
+void UpdateGameState(){
+  /*
+  #define ANIM_FAIL 6
+#define ANIM_GAME_OVER 9
+#define ANIM_SINGLE_CORRECT 7
+#define ANIM_SINGLE_WRONG 8
+#define ANIM_TIME 10
+#define ANIM_WIN 5
+#define HOST 1
+#define LIGHTNING 3
+#define PAUSE 4
+#define PLAYER 2
+*/
+ 
+ byte current_frame = 0;
+  
+  FetchGameInstruction(0,current_frame,&framecode[0]); // pass pointer to first elemnt of our instruction array
  /*
   Serial.print("Frame 0: ");
    Serial.print(framecode[0]);
@@ -176,42 +256,17 @@ void UpdateGameState(){
     Serial.print(",  ");
  Serial.println(framecode[2]);
  */
+  switch (framecode[GO_TYPE]) {
+   case HOST:
+    lcd.setBacklight(BACKLIGHT_RED);
+    DisplayModeTitle(FetchFrameName(current_frame));
+   break;
+ 
+ case PLAYER:
+ break;
+ 
+  }
  
 }
 
 
-void DisplayModeTitle(char* title){
-  /* Writes a centered line of text out to tthe LCD display.
-  
-  this version does not use the string library.
-  next version will not build intermediate char array - just write directly to display
-  
-  */
-  
-   // erase the line by padding out the title with spaces
-  byte titlelen = strlen(title);
-  int leftpad = (16-titlelen)/2;
-  //char* outStr = "                ";
-  char* outStr = "----------------";
-  byte i, cursor_start ;
-  for (i=0; i <16; i++) {
-      outStr[i] = ' ';
-    }
-  
-  if ( titlelen == 15 ) {
-     strcpy(outStr, title);
-  } else if (leftpad>0) {  //center
-    for (i=0; i <titlelen; i++) {
-      outStr[i+leftpad] = title[i];
-    }
-  } else { // too wide
-  leftpad = -leftpad;
-  for (i=0; i <16; i++) {
-      outStr[i] = title[i+leftpad];
-    }
-  }
-
-  lcd.setCursor(0, 0);
-  lcd.print(outStr);
-
-}
