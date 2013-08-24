@@ -73,17 +73,14 @@ void setup() {
   lcd.begin(16, 2);
   
    pinMode (TEAM1PIN, INPUT); // Without this analogRead always returns 0
+   pinMode (TEAM2PIN, INPUT); // Without this analogRead always returns 0
+   digitalWrite(A0, HIGH); // analog
+   digitalWrite(A1, HIGH); // analog
     analogRead (TEAM1PIN) ; // do a dummy read to get the pin in the right state?
 
 
 next_tick = millis() + TICKDURATION;
- 
- 
- 
-    for (i=0; i < 10; i++){
-   //   playerNames[i]="goober";
-    }
-
+ InitAnalogButtons();
   
 }
 
@@ -113,12 +110,13 @@ void loop() {
     DisplayModeTitle(FetchFrameName(current_mode));
     lcd.setBacklight(random(5)+1);
       unsigned int current_sample; // 16 bit
-  current_sample=analogRead(TEAM1PIN);
+ current_sample=analogRead(TEAM2PIN);
   
   itoa( current_sample, lcd_line2, 10);
   lcd.setCursor(0, 1);
   lcd.print(lcd_line2);
   lcd.print("  ");
+  
 
   }
 //
@@ -155,6 +153,10 @@ Globals: UserButton{
     
 if (v<100){
   retPlayer = 1;
+}
+  v=analogRead(TEAM2PIN);
+  if (v<100){
+  retPlayer = 2;
 }
   
   return retPlayer;
