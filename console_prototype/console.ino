@@ -1,5 +1,6 @@
 // include the library code:
 #include <Wire.h>
+#include <avr/io.h>
 #include <Adafruit_MCP23017.h>
 #include <Adafruit_RGBLCDShield.h>
 
@@ -43,8 +44,8 @@ char* playerNames[10][16]; // create space for player names
 char player_status[16]; //signed 8 bit
 
 typedef struct {
- byte lastbutton; // which button was "down" during last poll
- byte state;     // 0:still open,  1:from open to closed 2:from closed to closed 3:still closed
+ char lastbutton; // which button was "down" during last poll (signed) -1 = no button
+ byte state;     // 0:still open,  1:from open to closed 2:from closed to open 3:still closed 4: unkown
  unsigned int lastvalue; // last actual value from the pin
  unsigned long lastread; // time of last read
  unsigned long lastclosed; // time of last read that was closed
@@ -93,6 +94,13 @@ void setup() {
   // set up the LCD's number of columns and rows: 
   lcd.begin(16, 2);
   
+  pinMode(CONSOLE_GO_PIN, INPUT);
+  pinMode(CONSOLE_STOP_PIN, INPUT);
+  pinMode(CONSOLE_CANCEL_PIN, INPUT);
+  digitalWrite(CONSOLE_GO_PIN, HIGH);
+  digitalWrite(CONSOLE_STOP_PIN, HIGH);
+  digitalWrite(CONSOLE_CANCEL_PIN, HIGH);
+
    pinMode (TEAM1PIN, INPUT); // Without this analogRead always returns 0
    pinMode (TEAM2PIN, INPUT); // Without this analogRead always returns 0
    digitalWrite(A0, HIGH); // analog
@@ -170,9 +178,9 @@ byte buzzing;
   
   
 //
- lcd.setCursor(10, 1);
+ lcd.setCursor(14, 1);
   lcd.print(GetCountdownSeconds());
-lcd.print("  ");
+lcd.print(" ");
 
 
 }
@@ -215,21 +223,38 @@ Globals: UserButton{
 
 byte PollConsoleButtons(byte lookingfor) {
   /*
+  Input:
   0 - GO button
   1 - STOP button
   */
   byte retVal;
-  // this will eventually us ehte resistor ladder model.
+  // last value:
+  // buttonLines[0].lastbutton
+  // this will eventually use the resistor ladder model.
   // right now, we're just using digital pins
+  Serial.print("looking for:");
+  Serial.print(lookingfor);
+  retVal=0;
   switch (lookingfor) {
    case 0:
-  retVal = digitalRead(CONSOLE_GO_PIN);
+   if (digitalRead(CONSOLE_GO_PIN) == LOW){ retVal=1;}
+  
   break;
   case 1:
-  retVal = digitalRead(CONSOLE_STOP_PIN);
+  if (digitalRead(CONSOLE_STOP_PIN) == LOW){retVal=1;}
   break;
   }
-  
+
+    if (retVal){ // button pressed
+      if (lookingfor == buttonLines[0].lastbutton) { // have we already reported this button as pressed?
+        retVal = 0;
+      } else {
+        buttonLines[0].lastbutton = lookingfor;
+      }
+    } else {
+      buttonLines[0].lastbutton = -1;
+    }
+  return retVal;
 }
 void UpdateGameState(){
   /*
@@ -244,8 +269,6 @@ void UpdateGameState(){
 #define PAUSE 4
 #define PLAYER 2
 */
- 
- byte current_frame = 0;
   
   FetchGameInstruction(0,current_frame,&framecode[0]); // pass pointer to first elemnt of our instruction array
  /*
@@ -255,6 +278,7 @@ void UpdateGameState(){
  Serial.print(framecode[1]);
     Serial.print(",  ");
  Serial.println(framecode[2]);
+ 
  */
   switch (framecode[GO_TYPE]) {
    case HOST:
@@ -266,7 +290,11 @@ void UpdateGameState(){
  break;
  
   }
- 
+ byte i;
+  lcd.setCursor(6, 1);
+  for (i=0; i < 5; i++){
+    lcd.print(framecode[i]);
+  }
 }
 
 

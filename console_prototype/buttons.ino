@@ -3,7 +3,7 @@ Globals:
 buttonLines - see struct in console
 NUMBEROFTEAMS (define) -- number of lines to poll +1 (The size of the buttonLines array)
  byte lastbutton; // which button was "down" during last poll
- byte state;     // 0:still open,  1:from open to closed 2:from closed to closed 3:still closed, 4: inknown
+ byte state;     // 0:still open,  1:from open to closed 2:from closed to closed 3:still closed, 4: unknown
  unsigned int lastvalue; // last actual value from the pin
  unsigned long lastread; // time of last read
  unsigned long lastclosed; // time of last read that was closed
