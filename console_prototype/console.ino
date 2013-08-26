@@ -75,9 +75,10 @@ ButtonLine buttonLines[NUMBEROFTEAMS+1]; // 0th "team" is console
 #define PAUSE 4
 #define PLAYER 2
 #define START_CLOCK 11
+#define SYSTEM 13
 
 byte current_mode = 0;
-byte current_frame = 0;œ
+byte current_frame = 0;
 byte framecode[5]; // global array of this frame's instuctions
 
 // Timers:
@@ -324,6 +325,18 @@ void LoadGameFrame(){
  
  break;
  
+ case SYSTEM:
+ lcd.setBacklight(BACKLIGHT_TEAL);
+    DisplayModeTitle(FetchFrameName(current_frame));
+ break;
+ 
+ case ANIM_FAIL:
+ case ANIM_TIME:
+ case ANIM_WIN:
+  lcd.setBacklight(BACKLIGHT_YELLOW);
+    DisplayModeTitle(FetchFrameName(current_frame));
+    break;
+    
  default: 
      lcd.setBacklight(BACKLIGHT_RED);
     DisplayModeTitle(FetchFrameName(current_frame));

@@ -7,24 +7,26 @@ GAME_ALL_PLAY 2
 */
 
 
-const byte mode_instructions[13][5]  = {
-{1,0,0,0,HOST}, // 00 init
-{2,0,0,0,HOST}, // 01 idle
+const byte mode_instructions[14][5]  = {
+{1,0,0,0,SYSTEM}, // 00 init
+{2,0,0,0,SYSTEM}, // 01 idle
 {3,0,0,0,HOST}, // 02 read Q
 {4,0,0,0,START_CLOCK}, //03 start clock
 {200,1,10,5,PLAYER}, // 04 wait for answer
 {11,9,0,0,HOST}, // 05 JUDGE!
 {200,1,10,7,PLAYER}, //06 Steal
-{0,0,0,0,HOST},
-{0,0,0,0,HOST},
-{0,0,0,0,ANIM_FAIL},
-{0,0,0,0,ANIM_TIME},
-{0,0,0,0,ANIM_WIN},
-{6,1,0,0,HOST}
+{11,13,0,0,HOST}, // 07 JUDGE! (steal)
+{1,0,0,0,HOST}, // 08 award points
+{12,0,0,0,ANIM_FAIL}, //09 
+{2,0,0,0,ANIM_TIME}, //10
+{8,0,0,0,ANIM_WIN}, //11
+{6,1,0,0,HOST}, // 12
+{1,0,0,0}
 };
 
  char* mode_names[]   = {"Initializing", "Idle", "Read Question", "Start Timer",
-"Wait for Answer", "Correct?","Wait For Steal", "Callibrate: 1"};
+"Wait for Answer", "Correct?","Wait For Steal", "Correct?", "Award Points", "-WRONG-", 
+"- TIME -", "- CORRECT -", "Steal?", "- NOPE -", "Callibrate: 1"};
   
   
 void FetchGameInstruction(byte game, byte frame, byte *instruction_list) {
