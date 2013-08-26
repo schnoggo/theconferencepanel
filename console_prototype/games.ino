@@ -8,9 +8,9 @@ GAME_ALL_PLAY 2
 
 
 const byte mode_instructions[11][5]  = {
-  {2,0,0,0,HOST},
-{3,0,0,0,HOST},
-{0,0,0,0,HOST},
+{1,0,0,0,HOST},
+{2,0,0,0,HOST},
+{3,0,0,0,START_CLOCK},
 {200,2,10,5,PLAYER},
 {11,9,0,0,HOST},
 {0,0,0,0,PLAYER},
@@ -48,4 +48,6 @@ char* FetchFrameName(byte f) {
 
 void GoToFrame( byte f){
   // perform any pre-frame processing.
+  current_frame = f;
+  LoadGameFrame();
 }

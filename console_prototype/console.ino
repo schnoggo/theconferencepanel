@@ -74,6 +74,7 @@ ButtonLine buttonLines[NUMBEROFTEAMS+1]; // 0th "team" is console
 #define LIGHTNING 3
 #define PAUSE 4
 #define PLAYER 2
+#define START_CLOCK 11
 
 byte current_mode = 0;
 byte current_frame = 0;
@@ -110,6 +111,9 @@ void setup() {
 
 next_tick = millis() + TICKDURATION;
  InitAnalogButtons();
+ current_mode = 0;
+ current_frame = 0;
+ LoadGameFrame();
   
 }
 
@@ -126,7 +130,7 @@ void loop() {
     StartCountdown(10);
     
   }
-UpdateGameState();
+
 byte buzzing;
   /*if (now > next_tick) {
     next_tick = millis() + TICKDURATION;
@@ -155,12 +159,29 @@ byte buzzing;
     buzzing=PollUserButtons();
     
   }
+  // transient frames:
+   if (framecode[GO_TYPE] == START_CLOCK){
+       StartCountdown(10); // ten seconds on the clock
+       GoToFrame(framecode[GO_GO]);
+   }
+      
+      
   
   if(framecode[GO_GO]>0){
     if(PollConsoleButtons(0)){
+      switch(framecode[GO_TYPE]){
+      case START_CLOCK:
+       StartCountdown(10); // ten seconds on the clock
+      break;
+      
+      case PLAYER:
+      PauseCountdown();
+      break;
+      } 
       GoToFrame(framecode[GO_GO]);
     }
   }
+
   
    if(framecode[GO_STOP]>0){
     if(PollConsoleButtons(1)){
@@ -256,7 +277,7 @@ byte PollConsoleButtons(byte lookingfor) {
     }
   return retVal;
 }
-void UpdateGameState(){
+void LoadGameFrame(){
   /*
   #define ANIM_FAIL 6
 #define ANIM_GAME_OVER 9
@@ -287,13 +308,26 @@ void UpdateGameState(){
    break;
  
  case PLAYER:
+ lcd.setBacklight(BACKLIGHT_GREEN);
+    DisplayModeTitle(FetchFrameName(current_frame));
  break;
+ 
+ case START_CLOCK:
+     lcd.setBacklight(BACKLIGHT_RED);
+    DisplayModeTitle(FetchFrameName(current_frame));
+ 
+ break;
+ 
+ default: 
+     lcd.setBacklight(BACKLIGHT_RED);
+    DisplayModeTitle(FetchFrameName(current_frame));
  
   }
  byte i;
-  lcd.setCursor(6, 1);
+  lcd.setCursor(1, 1);
   for (i=0; i < 5; i++){
     lcd.print(framecode[i]);
+    lcd.print(" ");
   }
 }
 
