@@ -66,8 +66,8 @@ ButtonLine buttonLines[NUMBEROFTEAMS+1]; // 0th "team" is console
 // Screen types:
 #define ANIM_FAIL 6
 #define ANIM_GAME_OVER 9
-#define ANIM_SINGLE_CORRECT 7
-#define ANIM_SINGLE_WRONG 8
+#define ANIM_MINOR_WIN 7
+#define ANIM_MINOR_FAIL 12
 #define ANIM_TIME 10
 #define ANIM_WIN 5
 #define HOST 1
@@ -77,7 +77,7 @@ ButtonLine buttonLines[NUMBEROFTEAMS+1]; // 0th "team" is console
 #define START_CLOCK 11
 
 byte current_mode = 0;
-byte current_frame = 0;
+byte current_frame = 0;œ
 byte framecode[5]; // global array of this frame's instuctions
 
 // Timers:
@@ -175,10 +175,16 @@ byte buzzing;
       break;
       
       case PLAYER:
-      PauseCountdown();
+  
       break;
       } 
-      GoToFrame(framecode[GO_GO]);
+     switch(framecode[GO_GO]){
+       case 200:
+         TogglePause();
+       break;
+     default:
+        GoToFrame(framecode[GO_GO]);
+    }
     }
   }
 

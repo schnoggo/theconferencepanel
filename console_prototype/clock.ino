@@ -37,6 +37,13 @@ void ResumeCountdown(){
   
 }
 
+void TogglePause(){
+  if (GameTimer.state == 2){
+    ResumeCountdown();
+  } else {
+    PauseCountdown();
+  }
+}
 byte CountdownExpired(){
   /*
   1 clock has run out

@@ -7,21 +7,23 @@ GAME_ALL_PLAY 2
 */
 
 
-const byte mode_instructions[11][5]  = {
-{1,0,0,0,HOST},
-{2,0,0,0,HOST},
-{3,0,0,0,START_CLOCK},
-{200,2,10,5,PLAYER},
-{11,9,0,0,HOST},
-{0,0,0,0,PLAYER},
+const byte mode_instructions[13][5]  = {
+{1,0,0,0,HOST}, // 00 init
+{2,0,0,0,HOST}, // 01 idle
+{3,0,0,0,HOST}, // 02 read Q
+{4,0,0,0,START_CLOCK}, //03 start clock
+{200,1,10,5,PLAYER}, // 04 wait for answer
+{11,9,0,0,HOST}, // 05 JUDGE!
+{200,1,10,7,PLAYER}, //06 Steal
 {0,0,0,0,HOST},
 {0,0,0,0,HOST},
 {0,0,0,0,ANIM_FAIL},
 {0,0,0,0,ANIM_TIME},
-{0,0,0,0,ANIM_WIN}
+{0,0,0,0,ANIM_WIN},
+{6,1,0,0,HOST}
 };
 
- char* mode_names[]   = {"Initializing", "Idle", "Start Question", "Start Timer",
+ char* mode_names[]   = {"Initializing", "Idle", "Read Question", "Start Timer",
 "Wait for Answer", "Correct?","Wait For Steal", "Callibrate: 1"};
   
   
