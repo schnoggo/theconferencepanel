@@ -54,7 +54,7 @@ typedef struct {
 } ButtonLine;
 
 byte last_player_pressed = 0;
-
+byte buzzing_player = 0;
 #define NUMBEROFTEAMS 2 // should be able to support 3 teams with an Uno
 ButtonLine buttonLines[NUMBEROFTEAMS+1]; // 0th "team" is console
 
@@ -121,18 +121,10 @@ next_tick = millis() + TICKDURATION;
 void loop() {
   unsigned long now = millis();
   byte last_console_button = 0;
-  byte playernum = PollUserButtons();
-  /*
-  if (new_console_button != last_console_button){
-    
-  }
-  */
-  if (last_player_pressed != playernum){
-    StartCountdown(10);
-    
-  }
+ 
+ 
 
-byte buzzing;
+
   /*if (now > next_tick) {
     next_tick = millis() + TICKDURATION;
     current_mode++;
@@ -157,8 +149,17 @@ byte buzzing;
   
   */
   if(framecode[GO_PLAYER]>0){
-    buzzing=PollUserButtons();
-    
+    buzzing_player=PollUserButtons();
+          lcd.setCursor(15, 1);
+      lcd.print(buzzing_player);                                                                               
+    if (buzzing_player>0){
+
+      if (last_player_pressed != buzzing_player){
+ 
+        last_player_pressed = buzzing_player;
+        GoToFrame(framecode[GO_PLAYER]);
+      }
+    }
   }
   // transient frames:
    if (framecode[GO_TYPE] == START_CLOCK){
@@ -206,9 +207,7 @@ byte buzzing;
   
   
 //
- lcd.setCursor(14, 1);
-  lcd.print(GetCountdownSeconds());
-lcd.print(" ");
+
 
 
 }
