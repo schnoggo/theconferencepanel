@@ -81,6 +81,18 @@ byte current_mode = 0;
 byte current_frame = 0;
 byte framecode[5]; // global array of this frame's instuctions
 
+// animation:
+
+typedef struct {
+ char state;     // 0:not active, 1:needs init, 2: playing
+ unsigned long start_time; // time of last read that was closed
+  byte animation; // which line are we reading?
+
+} gameanimation;
+
+gameanimation game_animation; // make a global instance
+
+
 // Timers:
 typedef struct {
  byte state;     // 0:running,  1:expired, 2 paused,  -1:no clock
@@ -88,6 +100,7 @@ typedef struct {
  unsigned long end_time; // when the clock expires, or how much remains if paused
 } timer;
 timer GameTimer; // global game time
+
 
 void setup() {
   byte i;
@@ -109,7 +122,7 @@ void setup() {
    digitalWrite(A1, HIGH); // analog
     analogRead (TEAM1PIN) ; // do a dummy read to get the pin in the right state?
 
-
+InitGameAnimations();
 next_tick = millis() + TICKDURATION;
  InitAnalogButtons();
  current_mode = 0;
@@ -126,28 +139,16 @@ void loop() {
 
 
   /*if (now > next_tick) {
-    next_tick = millis() + TICKDURATION;
-    current_mode++;
-     UpdateGameState();
-    if ( current_mode>6) {
-      current_mode = 0;
-     
-    }
-
-    DisplayModeTitle(FetchFrameName(current_mode));
-    lcd.setBacklight(random(5)+1);
-      unsigned int current_sample; // 16 bit
- current_sample=analogRead(TEAM2PIN);
+  unsigned int current_sample; // 16 bit
+  current_sample=analogRead(TEAM2PIN);
   
   itoa( current_sample, lcd_line2, 10);
   lcd.setCursor(0, 1);
   lcd.print(lcd_line2);
   lcd.print("  ");
-  
-
   }
-  
   */
+  
   if(framecode[GO_PLAYER]>0){
     buzzing_player=PollUserButtons();
           lcd.setCursor(15, 1);
@@ -155,7 +156,6 @@ void loop() {
     if (buzzing_player>0){
 
       if (last_player_pressed != buzzing_player){
- 
         last_player_pressed = buzzing_player;
         GoToFrame(framecode[GO_PLAYER]);
       }
@@ -170,7 +170,7 @@ void loop() {
       
   
   if(framecode[GO_GO]>0){
-    if(PollConsoleButtons(0)){
+    if(PollConsoleButtons(1)){
       switch(framecode[GO_TYPE]){
       case START_CLOCK:
        StartCountdown(10); // ten seconds on the clock
@@ -192,7 +192,7 @@ void loop() {
 
   
    if(framecode[GO_STOP]>0){
-    if(PollConsoleButtons(1)){
+    if(PollConsoleButtons(2)){
       GoToFrame(framecode[GO_STOP]);
     }
   } 
@@ -251,8 +251,8 @@ Globals: UserButton{
 byte PollConsoleButtons(byte lookingfor) {
   /*
   Input:
-  0 - GO button
-  1 - STOP button
+  1 - GO button
+  2 - STOP button
   */
   byte retVal;
   // last value:
@@ -263,11 +263,11 @@ byte PollConsoleButtons(byte lookingfor) {
   Serial.print(lookingfor);
   retVal=0;
   switch (lookingfor) {
-   case 0:
+   case 1:
    if (digitalRead(CONSOLE_GO_PIN) == LOW){ retVal=1;}
   
   break;
-  case 1:
+  case 2:
   if (digitalRead(CONSOLE_STOP_PIN) == LOW){retVal=1;}
   break;
   }
@@ -332,8 +332,9 @@ void LoadGameFrame(){
  case ANIM_FAIL:
  case ANIM_TIME:
  case ANIM_WIN:
-  lcd.setBacklight(BACKLIGHT_YELLOW);
+    lcd.setBacklight(BACKLIGHT_YELLOW);
     DisplayModeTitle(FetchFrameName(current_frame));
+    PlayGameAnimation(framecode[GO_TYPE]);
     break;
     
  default: 
@@ -348,5 +349,4 @@ void LoadGameFrame(){
     lcd.print(" ");
   }
 }
-
 
