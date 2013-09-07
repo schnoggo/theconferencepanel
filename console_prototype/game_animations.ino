@@ -11,20 +11,27 @@ void ServiceGameAnimation(){
   switch (game_animation.state){
     case 1: // needs init
     // mostly just trigger sound here?
+   NeoWipe(pixel_ring.Color(255, 0, 0), 50); // Red
+  NeoWipe(pixel_ring.Color(0, 255, 0), 50); // Green
+  NeoWipe(pixel_ring.Color(0, 0, 255), 50); // Blue
+  game_animation.state = 2;
     break;
     case 2: // main service routine
     
-    switch(game_animation.animation){
-    case ANIM_FAIL:
-      duration = 2500;
-      break;
-      
-      default:
-      duration = 1500;
-    }
+      switch(game_animation.animation){
+      case ANIM_FAIL:
+        duration = 2500;
+        break;
+        
+        default:
+        duration = 1500;
+      }
     
     end_time = game_animation.start_time + duration;
     if (end_time < millis()){
+      NeoWipe(pixel_ring.Color(0, 0, 0), 10); // Black
+    
+       game_animation.state = 0;
      GoToFrame(framecode[GO_TIMER]);
     } 
     break;

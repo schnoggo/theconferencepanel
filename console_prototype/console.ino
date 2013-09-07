@@ -3,7 +3,8 @@
 #include <avr/io.h>
 #include <Adafruit_MCP23017.h>
 #include <Adafruit_RGBLCDShield.h>
-
+#include <Adafruit_NeoPixel.h>
+//   LCD SHIELD
 // The shield uses the I2C SCL and SDA pins. On classic Arduinos
 // this is Analog 4 and 5 so you can't use those for analogRead() anymore
 // However, you can connect other I2C sensors to the I2C bus and share
@@ -19,12 +20,27 @@ Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 #define BACKLIGHT_VIOLET 0x5
 #define BACKLIGHT_WHITE 0x7
 
+
+
+// NEO PIXEL
+#define NEOPIXEL_PIN 6
+
+// Parameter 1 = number of pixels in strip
+// Parameter 2 = pin number (most are valid)
+// Parameter 3 = pixel type flags, add together as needed:
+//   NEO_KHZ800  800 KHz bitstream (most NeoPixel products w/WS2812 LEDs)
+//   NEO_KHZ400  400 KHz (classic 'v1' (not v2) FLORA pixels, WS2811 drivers)
+//   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
+//   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
+Adafruit_NeoPixel pixel_ring = Adafruit_NeoPixel(16, NEOPIXEL_PIN, NEO_GRB + NEO_KHZ800);
+
+
 #define TEAM1PIN 0
 #define TEAM2PIN 1
 
-#define CONSOLE_GO_PIN 5
-#define CONSOLE_STOP_PIN 7
-#define CONSOLE_CANCEL_PIN 6
+#define CONSOLE_GO_PIN 4
+#define CONSOLE_STOP_PIN 3
+#define CONSOLE_CANCEL_PIN 5
 
 #define GO_GO 0
 #define GO_STOP 1
@@ -105,9 +121,13 @@ timer GameTimer; // global game time
 void setup() {
   byte i;
   // Debugging output
-  Serial.begin(9600);
+  // Serial.begin(9600);
   // set up the LCD's number of columns and rows: 
   lcd.begin(16, 2);
+  
+  // set up neopixel ring:
+   pixel_ring.begin();
+  pixel_ring.show(); // Initialize all pixels to 'off'
   
   pinMode(CONSOLE_GO_PIN, INPUT);
   pinMode(CONSOLE_STOP_PIN, INPUT);
@@ -123,6 +143,9 @@ void setup() {
     analogRead (TEAM1PIN) ; // do a dummy read to get the pin in the right state?
 
 InitGameAnimations();
+pixel_ring.setPixelColor(2, pixel_ring.Color(255, 0, 0));
+      pixel_ring.show();
+
 next_tick = millis() + TICKDURATION;
  InitAnalogButtons();
  current_mode = 0;
@@ -207,7 +230,7 @@ void loop() {
   
   
 //
-
+ServiceGameAnimation();
 
 
 }
@@ -259,8 +282,8 @@ byte PollConsoleButtons(byte lookingfor) {
   // buttonLines[0].lastbutton
   // this will eventually use the resistor ladder model.
   // right now, we're just using digital pins
-  Serial.print("looking for:");
-  Serial.print(lookingfor);
+ // Serial.print("looking for:");
+ // Serial.print(lookingfor);
   retVal=0;
   switch (lookingfor) {
    case 1:
@@ -330,7 +353,15 @@ void LoadGameFrame(){
  break;
  
  case ANIM_FAIL:
+ lcd.setBacklight(BACKLIGHT_YELLOW);
+    DisplayModeTitle(FetchFrameName(current_frame));
+    PlayGameAnimation(framecode[GO_TYPE]);
+    break;
  case ANIM_TIME:
+  lcd.setBacklight(BACKLIGHT_YELLOW);
+    DisplayModeTitle(FetchFrameName(current_frame));
+    PlayGameAnimation(framecode[GO_TYPE]);
+    break;
  case ANIM_WIN:
     lcd.setBacklight(BACKLIGHT_YELLOW);
     DisplayModeTitle(FetchFrameName(current_frame));
