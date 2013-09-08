@@ -13,6 +13,7 @@ void StartCountdown(byte secs){
    GameTimer.start_time = millis(); 
   GameTimer.state=0;
   GameTimer.end_time = milis + GameTimer.start_time;
+  GameTimer.duration = secs;
   
   
 }

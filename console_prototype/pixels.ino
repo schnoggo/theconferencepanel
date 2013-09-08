@@ -20,3 +20,37 @@ void NeoWipe(uint32_t c, uint8_t wait) {
       delay(wait);
   }
 }
+
+void Time2Neo(byte secs) {
+ /* show current time on ring neopixel
+ inputs:
+ secs - time in seconds
+ 
+ Globals:
+   GameTimer
+ */
+ uint32_t fore_color;
+ uint32_t back_color;
+ uint32_t off_color;
+ off_color = pixel_ring.Color(0, 0, 0);
+ if (secs >= 5){
+  fore_color = pixel_ring.Color(0, 90, 0);
+   back_color = pixel_ring.Color(0, 6, 0);
+ } else {
+   fore_color = pixel_ring.Color(172, 0, 0);
+    back_color = pixel_ring.Color(8, 0, 0);
+ }
+  
+  for(byte i=0; i<16; i++) {
+    if (i >= GameTimer.duration){
+      pixel_ring.setPixelColor(i, off_color);
+    } else {
+      if (i != secs){
+        pixel_ring.setPixelColor(i, back_color);
+      } else {
+        pixel_ring.setPixelColor(i, fore_color);
+      }
+    }
+  }
+  pixel_ring.show();
+}

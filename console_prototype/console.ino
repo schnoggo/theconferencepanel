@@ -114,6 +114,7 @@ typedef struct {
  byte state;     // 0:running,  1:expired, 2 paused,  -1:no clock
  unsigned long start_time; // when started or time paused
  unsigned long end_time; // when the clock expires, or how much remains if paused
+ byte duration; //duration in seconds (needed for clock display)
 } timer;
 timer GameTimer; // global game time
 
@@ -143,8 +144,7 @@ void setup() {
     analogRead (TEAM1PIN) ; // do a dummy read to get the pin in the right state?
 
 InitGameAnimations();
-pixel_ring.setPixelColor(2, pixel_ring.Color(255, 0, 0));
-      pixel_ring.show();
+
 
 next_tick = millis() + TICKDURATION;
  InitAnalogButtons();
@@ -183,6 +183,7 @@ void loop() {
         GoToFrame(framecode[GO_PLAYER]);
       }
     }
+    Time2Neo(GetCountdownSeconds());
   }
   // transient frames:
    if (framecode[GO_TYPE] == START_CLOCK){
