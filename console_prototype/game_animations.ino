@@ -36,7 +36,7 @@ void ServiceGameAnimation(){
     } 
     break;
   }
-  
+  CheckMemoryUse();
 }
 
 void InitGameAnimations(){

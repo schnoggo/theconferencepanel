@@ -49,6 +49,7 @@ Adafruit_NeoPixel pixel_ring = Adafruit_NeoPixel(16, NEOPIXEL_PIN, NEO_GRB + NEO
 #define GO_TYPE 4
 
 #define TICKDURATION 2000
+#define MEMTICKDURATION 6000
 
 unsigned long next_tick = 0;
 
@@ -92,6 +93,7 @@ ButtonLine buttonLines[NUMBEROFTEAMS+1]; // 0th "team" is console
 #define PLAYER 2
 #define START_CLOCK 11
 #define SYSTEM 13
+#define CALIBRATING 0 // set to 1 to set up mode where we can get resistor values
 
 byte current_mode = 0;
 byte current_frame = 0;
@@ -118,48 +120,46 @@ typedef struct {
 } timer;
 timer GameTimer; // global game time
 
+unsigned long mem_tick;
+unsigned int memtickle = 0;
 
 void setup() {
-  byte i;
-  // Debugging output
-  // Serial.begin(9600);
-  // set up the LCD's number of columns and rows: 
-  lcd.begin(16, 2);
-  
-  // set up neopixel ring:
-   pixel_ring.begin();
-  pixel_ring.show(); // Initialize all pixels to 'off'
-  
-  pinMode(CONSOLE_GO_PIN, INPUT);
-  pinMode(CONSOLE_STOP_PIN, INPUT);
-  pinMode(CONSOLE_CANCEL_PIN, INPUT);
-  digitalWrite(CONSOLE_GO_PIN, HIGH);
-  digitalWrite(CONSOLE_STOP_PIN, HIGH);
-  digitalWrite(CONSOLE_CANCEL_PIN, HIGH);
+// ------------
+	byte i; // generic, global index to avoid memory thrashing
+	// Debugging output
+	Serial.begin(9600);
+	mem_tick = millis();
+	// set up the LCD's number of columns and rows: 
+	lcd.begin(16, 2);
 
-   pinMode (TEAM1PIN, INPUT); // Without this analogRead always returns 0
-   pinMode (TEAM2PIN, INPUT); // Without this analogRead always returns 0
-   digitalWrite(A0, HIGH); // analog
-   digitalWrite(A1, HIGH); // analog
-    analogRead (TEAM1PIN) ; // do a dummy read to get the pin in the right state?
+	// set up neopixel ring:
+	pixel_ring.begin();
+	pixel_ring.show(); // Initialize all pixels to 'off'
 
-InitGameAnimations();
+	pinMode(CONSOLE_GO_PIN, INPUT);
+	pinMode(CONSOLE_STOP_PIN, INPUT);
+	pinMode(CONSOLE_CANCEL_PIN, INPUT);
+	digitalWrite(CONSOLE_GO_PIN, HIGH);
+	digitalWrite(CONSOLE_STOP_PIN, HIGH);
+	digitalWrite(CONSOLE_CANCEL_PIN, HIGH);
 
+	pinMode (TEAM1PIN, INPUT); // Without this analogRead always returns 0
+	pinMode (TEAM2PIN, INPUT); // Without this analogRead always returns 0
+	digitalWrite(A0, LOW); // analog - do not use internal resistor
+	digitalWrite(A1, LOW); // analog - do not use internal resistor - alreay in the circuit
+	analogRead (TEAM1PIN) ; // do a dummy read to get the pin in the right state?
 
-next_tick = millis() + TICKDURATION;
- InitAnalogButtons();
- current_mode = 0;
- current_frame = 0;
- LoadGameFrame();
-  
+	InitGameAnimations();
+	next_tick = millis() + TICKDURATION;
+	InitAnalogButtons();
+	current_mode = 0;
+	current_frame = 0;
+	LoadGameFrame();  
 }
 
 void loop() {
   unsigned long now = millis();
   byte last_console_button = 0;
- 
- 
-
 
   /*if (now > next_tick) {
   unsigned int current_sample; // 16 bit
@@ -172,6 +172,9 @@ void loop() {
   }
   */
   
+  if (CALIBRATING){
+    showLadderValue();
+  } else {
   if(framecode[GO_PLAYER]>0){
     buzzing_player=PollUserButtons();
           lcd.setCursor(15, 1);
@@ -232,8 +235,8 @@ void loop() {
   
 //
 ServiceGameAnimation();
-
-
+  }
+CheckMemoryUse();
 }
 
 byte PollUserButtons() {
@@ -382,3 +385,23 @@ void LoadGameFrame(){
   }
 }
 
+
+int FreeRam () 
+{
+  extern int __heap_start, *__brkval; 
+  int v; 
+  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval); 
+}
+
+void CheckMemoryUse(){
+	
+  if ((millis() -  MEMTICKDURATION) > mem_tick){
+    mem_tick = millis();
+    Serial.print("mem ");
+    Serial.print(memtickle);
+    Serial.print(": ");
+    Serial.println(FreeRam());
+    memtickle++;
+  }
+  
+}
