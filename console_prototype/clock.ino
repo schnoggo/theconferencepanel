@@ -45,14 +45,27 @@ void TogglePause(){
     PauseCountdown();
   }
 }
+
+
+// -------------------------------
 byte CountdownExpired(){
-  /*
-  1 clock has run out
-  0 clock still running
-  -1 no clock defined
-  */
+/*
+  Inputs:
+    None
+    
+  Globals:
+    GameTimer - Updates GameTimer.state
+    
+  Outputs:  
+    1 clock has run out
+    0 clock still running
+    -1 no clock defined
+    
+*/
+
   byte retVal = GameTimer.state;
   unsigned long now;
+  
   switch (GameTimer.state) {
     case 0: // running timer
     // see if timer has run out since last test
@@ -76,8 +89,11 @@ byte CountdownExpired(){
     return retVal;
 }
 
+
+// -------------------------------
 byte GetCountdownSeconds(){
   // return current timer in seconds
+  
   byte secs = 0;
   unsigned long now = millis();
   switch (GameTimer.state) {

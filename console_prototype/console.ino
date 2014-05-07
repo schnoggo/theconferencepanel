@@ -52,8 +52,12 @@ Adafruit_NeoPixel pixel_ring = Adafruit_NeoPixel(16, NEOPIXEL_PIN, NEO_GRB + NEO
 #define MEMTICKDURATION 6000
 
 unsigned long next_tick = 0;
+unsigned long mem_tick;
 
 char lcd_line2[17]; // leave room for the terminating zero
+unsigned int player_button_thresholds[] = {
+	549,555,562,580,623,733
+	};
 
 // Buttons, Teams, and Players:
 char* playerNames[10][16]; // create space for player names
@@ -93,7 +97,7 @@ ButtonLine buttonLines[NUMBEROFTEAMS+1]; // 0th "team" is console
 #define PLAYER 2
 #define START_CLOCK 11
 #define SYSTEM 13
-#define CALIBRATING 0 // set to 1 to set up mode where we can get resistor values
+#define CALIBRATING 1 // set to 1 to set up mode where we can get resistor values
 
 byte current_mode = 0;
 byte current_frame = 0;
@@ -120,8 +124,6 @@ typedef struct {
 } timer;
 timer GameTimer; // global game time
 
-unsigned long mem_tick;
-unsigned int memtickle = 0;
 
 void setup() {
 // ------------
@@ -398,10 +400,10 @@ void CheckMemoryUse(){
   if ((millis() -  MEMTICKDURATION) > mem_tick){
     mem_tick = millis();
     Serial.print("mem ");
-    Serial.print(memtickle);
+    Serial.print(mem_tick);
     Serial.print(": ");
     Serial.println(FreeRam());
-    memtickle++;
+    mem_tick++;
   }
   
 }

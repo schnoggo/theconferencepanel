@@ -1,6 +1,17 @@
-// Input a value 0 to 255 to get a color value.
-// The colours are a transition r - g - b - back to r.
+// -------------------------------
 uint32_t NeoWheel(byte WheelPos) {
+/* (From Adafruit sample code)
+  Globals:
+    pixel_ring Adafruit Neopixel object
+    
+  Inputs:
+    WheelPos (byte) Position on the color wheel (0 - 255)
+    The colours are a transition r - g - b - back to r
+
+  Outputs:
+    packed color value as used in Adafruit libraries
+*/
+  
   if(WheelPos < 85) {
    return pixel_ring.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
   } else if(WheelPos < 170) {
@@ -21,14 +32,15 @@ void NeoWipe(uint32_t c, uint8_t wait) {
   }
 }
 
+// -------------------------------
 void Time2Neo(byte secs) {
- /* show current time on ring neopixel
+/* show current time on ring neopixel
  inputs:
  secs - time in seconds
  
  Globals:
    GameTimer
- */
+*/
  uint32_t fore_color;
  uint32_t back_color;
  uint32_t off_color;
