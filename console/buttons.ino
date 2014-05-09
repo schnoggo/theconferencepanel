@@ -9,7 +9,7 @@ NUMBEROFTEAMS (define) -- number of lines to poll +1 (The size of the buttonLine
  unsigned long lastclosed; // time of last read that was closed
   byte pin; // which line are we reading?
   
-
+player_button_thresholds - list of current values for buttons on this branch
 
 */
 
@@ -31,4 +31,56 @@ void InitAnalogButtons(){
   
   buttonLines[1].pin = TEAM1PIN;
   buttonLines[2].pin = TEAM2PIN;
+}
+
+
+void ClearUserButtons() {
+InitAnalogButtons();
+
+}
+
+byte PollUserButtons() {
+/* 
+Inputs: none (just globals)
+Hardware: Uses 3 analog pins to determine which button is being pushed
+Globals: UserButton{
+    lastbutton: int8 value of last button pressed
+    state: int8 state of last button read {
+      0:still open, 
+      1:from open to closed
+      2:from closed to closed
+      3:still closed
+    }
+    lastread: unsigned long time of last read
+    lastclosed: unsigned long time of last read that was closed
+    TEAM1PIN
+    player_button_thresholds
+    
+ Outputs:
+   updates UserButton
+   returns player number of newly pressed button
+*/
+    byte retPlayer=0;
+    byte i;
+    byte j;
+    byte team;
+    unsigned int v;
+    team = 0;
+    for (i=1; i <= NUMBEROFTEAMS; i++) { // channel 0 is the console - start with 1
+      v=analogRead(buttonLines[i].pin);
+      if (v > player_button_thresholds[0]){ // make sure something is pressed
+
+        for (j=4; j>0; j--) { //step down through button thresholds
+          if ( v >= player_button_thresholds[j] ){
+            // debounce here
+            retPlayer = (i-1)*5 + j;
+            team = i;
+            i = (NUMBEROFTEAMS + 1); // old-school (and dirty) method to break outer loop
+            break;
+          }
+        }
+      }
+    }
+    
+  return retPlayer;
 }

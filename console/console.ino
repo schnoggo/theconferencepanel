@@ -76,7 +76,7 @@ typedef struct {
 
 byte last_player_pressed = 0;
 byte buzzing_player = 0;
-#define NUMBEROFTEAMS 2 // should be able to support 3 teams with an Uno
+#define NUMBEROFTEAMS 1 // should be able to support 3 teams with an Uno
 ButtonLine buttonLines[NUMBEROFTEAMS+1]; // 0th "team" is console
 
 // Game Modes
@@ -97,7 +97,7 @@ ButtonLine buttonLines[NUMBEROFTEAMS+1]; // 0th "team" is console
 #define PLAYER 2
 #define START_CLOCK 11
 #define SYSTEM 13
-#define CALIBRATING 1 // set to 1 to set up mode where we can get resistor values
+#define CALIBRATING 0 // set to 1 to set up mode where we can get resistor values
 
 byte current_mode = 0;
 byte current_frame = 0;
@@ -241,41 +241,7 @@ ServiceGameAnimation();
 CheckMemoryUse();
 }
 
-byte PollUserButtons() {
-/* 
-Inputs: none (just globals)
-Hardware: Uses 3 analog pins to determine which button is being pushed
-Globals: UserButton{
-    lastbutton: int8 value of last button pressed
-    state: int8 state of last button read {
-      0:still open, 
-      1:from open to closed
-      2:from closed to closed
-      3:still closed
-    }
-    lastread: unsigned long time of last read
-    lastclosed: unsigned long time of last read that was closed
-    TEAM1PIN
-    
- Outputs:
-   updates UserButton
-   returns player number of newly pressed button
-    */
-    byte retPlayer=0;
-    byte i;
-    byte team;
-    unsigned int v;
-      
-    for (i=1; i <= NUMBEROFTEAMS; i++) { // channel 0 is the console - start with 1
-      v=analogRead(buttonLines[i].pin);
-      if (v<1000){
-      retPlayer = i; // until we put the decoder in
-        team = i;
-      }
-    }
-    
-  return retPlayer;
-}
+
 
 byte PollConsoleButtons(byte lookingfor) {
   /*
