@@ -5,7 +5,7 @@ NUMBEROFTEAMS (define) -- number of lines to poll +1 (The size of the buttonLine
  byte lastbutton; // which button was "down" during last poll
  byte state;     // 0:still open,  1:from open to closed 2:from closed to closed 3:still closed, 4: unknown
  unsigned int lastvalue; // last actual value from the pin
- unsigned long lastread; // time of last read
+ uint8_t repeat_count; // number of times this value has been read
  unsigned long lastclosed; // time of last read that was closed
   byte pin; // which line are we reading?
   
@@ -25,12 +25,14 @@ void InitAnalogButtons(){
   for (i=0; i <= NUMBEROFTEAMS; i++) {
     buttonLines[i].lastbutton = 0;
     buttonLines[i].state = 4;
-    buttonLines[i].lastread = 0;
+    buttonLines[i].lastvalue = 9999;
     buttonLines[i].lastbutton = 0;
+    buttonLines[i].repeat_count = 0;
     }
   
   buttonLines[1].pin = TEAM1PIN;
   buttonLines[2].pin = TEAM2PIN;
+  calibrate_tick = 0;
 }
 
 
@@ -61,26 +63,53 @@ Globals: UserButton{
    returns player number of newly pressed button
 */
     byte retPlayer=0;
+    byte retTeam;
     byte i;
     byte j;
-    byte team;
+
     unsigned int v;
-    team = 0;
+    retTeam = 0;
+    // debug stuff:
+    char outnum[5];
+    
     for (i=1; i <= NUMBEROFTEAMS; i++) { // channel 0 is the console - start with 1
       v=analogRead(buttonLines[i].pin);
-      if (v > player_button_thresholds[0]){ // make sure something is pressed
+      if (abs(v-buttonLines[i].lastvalue) <=2) {
+        // repeated value:
+        if (buttonLines[i].repeat_count < 254) {buttonLines[i].repeat_count++;} // count it
+          if (buttonLines[i].repeat_count > 5) {
+            // stable value - maybe count it as a button press
 
-        for (j=4; j>0; j--) { //step down through button thresholds
-          if ( v >= player_button_thresholds[j] ){
-            // debounce here
-            retPlayer = (i-1)*5 + j;
-            team = i;
-            i = (NUMBEROFTEAMS + 1); // old-school (and dirty) method to break outer loop
-            break;
-          }
-        }
+            if (CALIBRATING){
+            // display the stable value:
+              if ((millis() - calibrate_tick ) > 400) {
+                sprintf(outnum, " %04d", v);
+                lcd.setCursor(11, i - 1);
+                lcd.print(outnum);
+                calibrate_tick = millis();
+              }
+            } else { // calibrating
+              // not calibrating - actually return user and team:
+
+              if (v > player_button_thresholds[0]){ // make sure something is pressed
+                for (j=4; j>0; j--) { //step down through button thresholds
+                  if ( v >= player_button_thresholds[j] ){
+                    retPlayer = (i-1)*5 + j;
+                    retTeam = i;
+                    i = (NUMBEROFTEAMS + 1); // old-school (and dirty) method to break outer loop
+                    break;
+
+                  }
+                } // step through thresholds
+              } // quick check for ANY press
+          } // calibrate or real button
+        } // stable value
+
+      } else {
+        // changing value. Rest counter and take new value
+        buttonLines[i].lastvalue = v;
+        buttonLines[i].repeat_count = 0;
       }
-    }
-    
+    } // step through input pins    
   return retPlayer;
 }

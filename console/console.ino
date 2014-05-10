@@ -68,7 +68,7 @@ typedef struct {
  char lastbutton; // which button was "down" during last poll (signed) -1 = no button
  byte state;     // 0:still open,  1:from open to closed 2:from closed to open 3:still closed 4: unkown
  unsigned int lastvalue; // last actual value from the pin
- unsigned long lastread; // time of last read
+ uint8_t repeat_count; // number of times this value has been read
  unsigned long lastclosed; // time of last read that was closed
   byte pin; // which line are we reading?
 
@@ -97,7 +97,9 @@ ButtonLine buttonLines[NUMBEROFTEAMS+1]; // 0th "team" is console
 #define PLAYER 2
 #define START_CLOCK 11
 #define SYSTEM 13
-#define CALIBRATING 0 // set to 1 to set up mode where we can get resistor values
+#define CALIBRATING 1
+unsigned long calibrate_tick = 0;
+// set to 1 to set up mode where we can get resistor values
 
 byte current_mode = 0;
 byte current_frame = 0;
@@ -174,9 +176,6 @@ void loop() {
   }
   */
   
-  if (CALIBRATING){
-    showLadderValue();
-  } else {
   if(framecode[GO_PLAYER]>0){
     buzzing_player=PollUserButtons();
           lcd.setCursor(15, 1);
@@ -237,7 +236,7 @@ void loop() {
   
 //
 ServiceGameAnimation();
-  }
+  
 CheckMemoryUse();
 }
 
