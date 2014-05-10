@@ -56,7 +56,8 @@ unsigned long mem_tick;
 
 char lcd_line2[17]; // leave room for the terminating zero
 unsigned int player_button_thresholds[] = {
-	549,555,562,580,623,733
+//	549,555,562,580,623,733 // 10k version
+645,650,658,673,713,808 // 15k version
 	};
 
 // Buttons, Teams, and Players:
@@ -97,7 +98,7 @@ ButtonLine buttonLines[NUMBEROFTEAMS+1]; // 0th "team" is console
 #define PLAYER 2
 #define START_CLOCK 11
 #define SYSTEM 13
-#define CALIBRATING 1
+#define CALIBRATING 0
 unsigned long calibrate_tick = 0;
 // set to 1 to set up mode where we can get resistor values
 
@@ -176,6 +177,9 @@ void loop() {
   }
   */
   
+  if (CALIBRATING){
+  	PollUserButtons();
+  } else {
   if(framecode[GO_PLAYER]>0){
     buzzing_player=PollUserButtons();
           lcd.setCursor(15, 1);
@@ -238,6 +242,7 @@ void loop() {
 ServiceGameAnimation();
   
 CheckMemoryUse();
+}
 }
 
 

@@ -70,21 +70,21 @@ Globals: UserButton{
     unsigned int v;
     retTeam = 0;
     // debug stuff:
-    char outnum[5];
+    char outnum[9];
     
     for (i=1; i <= NUMBEROFTEAMS; i++) { // channel 0 is the console - start with 1
       v=analogRead(buttonLines[i].pin);
-      if (abs(v-buttonLines[i].lastvalue) <=2) {
+      if (abs(v-buttonLines[i].lastvalue) <=3) {
         // repeated value:
         if (buttonLines[i].repeat_count < 254) {buttonLines[i].repeat_count++;} // count it
-          if (buttonLines[i].repeat_count > 5) {
+          if (buttonLines[i].repeat_count > 8) {
             // stable value - maybe count it as a button press
 
             if (CALIBRATING){
             // display the stable value:
               if ((millis() - calibrate_tick ) > 400) {
-                sprintf(outnum, " %04d", v);
-                lcd.setCursor(11, i - 1);
+                sprintf(outnum, "%03d %04d", buttonLines[i].repeat_count, buttonLines[i].lastvalue);
+                lcd.setCursor(7, i - 1);
                 lcd.print(outnum);
                 calibrate_tick = millis();
               }
