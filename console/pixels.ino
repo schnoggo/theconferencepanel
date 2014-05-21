@@ -66,3 +66,40 @@ void Time2Neo(byte secs) {
   }
   pixel_ring.show();
 }
+
+
+void LightPlayer(uint8_t player, uint8_t team, uint32_t color){
+/*
+  player
+  team
+  color
+  
+  There are wto pixels per player - front and back
+
+*/
+
+  byte i = ((player-1)*2) + ((team-1)*8) + 16; // 16 pixels on the on-board display
+
+      pixel_ring.setPixelColor(i, color);
+      pixel_ring.setPixelColor(i+1, color);
+      pixel_ring.show();
+  
+}
+
+void LightOnePlayer(uint8_t player, uint8_t team, uint32_t color){
+/* Light up just one player's lights
+
+*/
+
+  byte i;
+  byte j;
+  for(i=1; i<=4; i++) {
+    for(j=1; j<=2; j++) {
+      if((i != player ) and (j != team)){
+        LightPlayer(i, j, pixel_ring.Color(0, 0, 0));
+      } else {
+        LightPlayer(i, j, color);
+      }
+    }
+  }
+}

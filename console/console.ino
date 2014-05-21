@@ -30,7 +30,7 @@ Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 //   NEO_KHZ400  400 KHz (classic 'v1' (not v2) FLORA pixels, WS2811 drivers)
 //   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
 //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
-Adafruit_NeoPixel pixel_ring = Adafruit_NeoPixel(16, NEOPIXEL_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel pixel_ring = Adafruit_NeoPixel(16+4+4, NEOPIXEL_PIN, NEO_GRB + NEO_KHZ800);
 
 
 #define TEAM1PIN 0
@@ -123,7 +123,7 @@ ButtonLine buttonLines[NUMBEROFTEAMS+1]; // 0th "team" is console
 #define PLAYER 2
 #define START_CLOCK 11
 #define SYSTEM 13
-#define CALIBRATING 1
+#define CALIBRATING 0
 
 
 
@@ -188,6 +188,12 @@ void setup() {
 	InitAnalogButtons();
 	current_mode = 0;
 	current_frame = 0;
+	
+		LightPlayer(1,1,pixel_ring.Color(1, 0, 20));
+LightPlayer(2,1,pixel_ring.Color(10, 50, 0));
+
+
+
 	LoadGameFrame();  
 }
 
@@ -389,7 +395,6 @@ int FreeRam ()
 }
 
 void CheckMemoryUse(){
-	
   if ((millis() -  MEMTICKDURATION) > mem_tick){
     mem_tick = millis();
     Serial.print("mem ");
