@@ -97,6 +97,8 @@ Globals: UserButton{
                     retPlayer = (i-1)*5 + j;
                     // retPlayer will get much more complicated
                     // this could be simoultaneous keypresses and we can randomly select one
+                    // fake it for the demo:
+                    if (retPlayer>2){retPlayer=3;}
                     retTeam = i;
                     i = (NUMBEROFTEAMS + 1); // old-school (and dirty) method to break outer loop
                     

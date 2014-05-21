@@ -189,8 +189,9 @@ void setup() {
 	current_mode = 0;
 	current_frame = 0;
 	
-		LightPlayer(1,1,pixel_ring.Color(1, 0, 20));
-LightPlayer(2,1,pixel_ring.Color(10, 50, 0));
+		LightPlayer(1,1,pixel_ring.Color(1, 0, 20),0);
+LightPlayer(2,1,pixel_ring.Color(10, 50, 0),0);
+LightPlayer(3,1,pixel_ring.Color(20, 0, 0),0);
 
 
 
@@ -212,6 +213,9 @@ void loop() {
     if (buzzing_player>0){
     	// depending on game type, we made need to lock out this player, the player team, or reset everything
 			ClearUserButtons();
+			
+			// Light up the buzzing player:
+			LightOnePlayer(buzzing_player,1,pixel_ring.Color(50, 200, 200));
      //  if (last_player_pressed != buzzing_player){
       //   last_player_pressed = buzzing_player;
         GoToFrame(framecode[GO_PLAYER]);
