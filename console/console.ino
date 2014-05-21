@@ -20,8 +20,6 @@ Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 #define BACKLIGHT_VIOLET 0x5
 #define BACKLIGHT_WHITE 0x7
 
-
-
 // NEO PIXEL
 #define NEOPIXEL_PIN 6
 
@@ -55,10 +53,37 @@ unsigned long next_tick = 0;
 unsigned long mem_tick;
 
 char lcd_line2[17]; // leave room for the terminating zero
-unsigned int player_button_thresholds[] = {
-//	549,555,562,580,623,733 // 10k version
-645,650,658,673,713,808 // 15k version
-	};
+
+
+#define BUT1 1
+#define BUT2 2
+#define BUT3 4
+#define BUT4 8
+
+struct buttonmap{
+	unsigned int reading; // analog reading value
+	byte button_bits; // bit-packed list of which buttons are press. see BUT1 et al.
+} player_button_thresholds[17] ={
+	{555,0},
+	{569, BUT1},
+	{582, BUT2},
+	{603, BUT1 | BUT2},
+	{631, BUT3},
+	{650, BUT1 | BUT3},
+	{673, BUT2 | BUT3},
+	{694, BUT1 | BUT2 | BUT3},
+	{746, BUT4},
+	{773, BUT1 | BUT4},
+	{804, BUT2 | BUT4},
+	{836, BUT1 | BUT2 | BUT4},
+	{888, BUT3 | BUT4},
+	{924, BUT1 | BUT3 | BUT4},
+	{974, BUT2 | BUT3 | BUT4},
+	{1020, BUT1 | BUT2 | BUT3 | BUT4}
+};
+
+
+
 
 // Buttons, Teams, and Players:
 char* playerNames[10][16]; // create space for player names
@@ -98,7 +123,11 @@ ButtonLine buttonLines[NUMBEROFTEAMS+1]; // 0th "team" is console
 #define PLAYER 2
 #define START_CLOCK 11
 #define SYSTEM 13
-#define CALIBRATING 0
+#define CALIBRATING 1
+
+
+
+
 unsigned long calibrate_tick = 0;
 // set to 1 to set up mode where we can get resistor values
 
@@ -166,30 +195,21 @@ void loop() {
   unsigned long now = millis();
   byte last_console_button = 0;
 
-  /*if (now > next_tick) {
-  unsigned int current_sample; // 16 bit
-  current_sample=analogRead(TEAM2PIN);
-  
-  itoa( current_sample, lcd_line2, 10);
-  lcd.setCursor(0, 1);
-  lcd.print(lcd_line2);
-  lcd.print("  ");
-  }
-  */
   
   if (CALIBRATING){
   	PollUserButtons();
   } else {
   if(framecode[GO_PLAYER]>0){
     buzzing_player=PollUserButtons();
-          lcd.setCursor(15, 1);
-      lcd.print(buzzing_player);                                                                               
+    lcd.setCursor(15, 1); // show player in lower-right
+    lcd.print(buzzing_player);                                                                               
     if (buzzing_player>0){
-
-      if (last_player_pressed != buzzing_player){
-        last_player_pressed = buzzing_player;
+    	// depending on game type, we made need to lock out this player, the player team, or reset everything
+			ClearUserButtons();
+     //  if (last_player_pressed != buzzing_player){
+      //   last_player_pressed = buzzing_player;
         GoToFrame(framecode[GO_PLAYER]);
-      }
+     // }
     }
     Time2Neo(GetCountdownSeconds());
   }
@@ -241,7 +261,6 @@ void loop() {
 //
 ServiceGameAnimation();
   
-CheckMemoryUse();
 }
 }
 
@@ -313,7 +332,7 @@ void LoadGameFrame(){
    break;
  
  case PLAYER:
- lcd.setBacklight(BACKLIGHT_GREEN);
+ 		lcd.setBacklight(BACKLIGHT_GREEN);
     DisplayModeTitle(FetchFrameName(current_frame));
  break;
  
@@ -324,17 +343,17 @@ void LoadGameFrame(){
  break;
  
  case SYSTEM:
- lcd.setBacklight(BACKLIGHT_TEAL);
+		lcd.setBacklight(BACKLIGHT_TEAL);
     DisplayModeTitle(FetchFrameName(current_frame));
  break;
  
  case ANIM_FAIL:
- lcd.setBacklight(BACKLIGHT_YELLOW);
+ 		lcd.setBacklight(BACKLIGHT_YELLOW);
     DisplayModeTitle(FetchFrameName(current_frame));
     PlayGameAnimation(framecode[GO_TYPE]);
     break;
  case ANIM_TIME:
-  lcd.setBacklight(BACKLIGHT_YELLOW);
+  	lcd.setBacklight(BACKLIGHT_YELLOW);
     DisplayModeTitle(FetchFrameName(current_frame));
     PlayGameAnimation(framecode[GO_TYPE]);
     break;
@@ -346,15 +365,19 @@ void LoadGameFrame(){
     
  default: 
      lcd.setBacklight(BACKLIGHT_RED);
-    DisplayModeTitle(FetchFrameName(current_frame));
+			DisplayModeTitle(FetchFrameName(current_frame));
  
   }
- byte i;
+
+  // display the game code at the bottom of the screen
+  /*
   lcd.setCursor(1, 1);
+	byte i;
   for (i=0; i < 5; i++){
     lcd.print(framecode[i]);
     lcd.print(" ");
   }
+  */
 }
 
 

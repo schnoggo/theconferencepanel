@@ -91,12 +91,21 @@ Globals: UserButton{
             } else { // calibrating
               // not calibrating - actually return user and team:
 
-              if (v > player_button_thresholds[0]){ // make sure something is pressed
-                for (j=4; j>0; j--) { //step down through button thresholds
-                  if ( v >= player_button_thresholds[j] ){
+              if (v > player_button_thresholds[0].reading){ // make sure something is pressed
+                for (j=5; j>0; j--) { //step down through button thresholds
+                 if ( v >= player_button_thresholds[j].reading ){
                     retPlayer = (i-1)*5 + j;
+                    // retPlayer will get much more complicated
+                    // this could be simoultaneous keypresses and we can randomly select one
                     retTeam = i;
                     i = (NUMBEROFTEAMS + 1); // old-school (and dirty) method to break outer loop
+                    
+                    
+                sprintf(outnum, "%04d", v);
+                lcd.setCursor(10, 1);
+                lcd.print(outnum);
+                
+                
                     break;
 
                   }
