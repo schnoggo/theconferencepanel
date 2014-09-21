@@ -2,6 +2,9 @@
 char* RAM_player_names[]   = {"Veronica Belmont", "Brian Dunaway", "Scott Johnson", "Turpster",
 "Tom Merrit", "Spagnolo","Player 7", "Player 8"};
 
+// player_status
+// 0 - normal
+// 1 -locked out
 
 
 char* FetchPlayerName(byte f) {
@@ -18,7 +21,7 @@ void DQPlayer(byte playernum){
      Outputs: updates player_status array
      */
      
-     player_status[playernum]=-1;
+     player_status[playernum]=1;
 }
 
 void ResetPlayerList(){

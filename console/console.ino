@@ -30,7 +30,7 @@ Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 //   NEO_KHZ400  400 KHz (classic 'v1' (not v2) FLORA pixels, WS2811 drivers)
 //   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
 //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
-Adafruit_NeoPixel pixel_ring = Adafruit_NeoPixel(16+4+4, NEOPIXEL_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel pixel_ring = Adafruit_NeoPixel(16+8, NEOPIXEL_PIN, NEO_GRB + NEO_KHZ800);
 
 
 #define TEAM1PIN 0
@@ -66,11 +66,11 @@ struct buttonmap{
 } player_button_thresholds[17] ={
 	{555,0},
 	{569, BUT1},
-	{582, BUT2},
+	{586, BUT2},
 	{603, BUT1 | BUT2},
-	{631, BUT3},
+	{630, BUT3},
 	{650, BUT1 | BUT3},
-	{673, BUT2 | BUT3},
+	{672, BUT2 | BUT3},
 	{694, BUT1 | BUT2 | BUT3},
 	{746, BUT4},
 	{773, BUT1 | BUT4},
@@ -83,26 +83,30 @@ struct buttonmap{
 };
 
 
+#define NUMBER_OF_PLAYERS 4
+#define NUMBEROFTEAMS 1 // should be able to support 3 teams with an Uno\
 
 
 // Buttons, Teams, and Players:
-char* playerNames[10][16]; // create space for player names
+char playerNames[(NUMBEROFTEAMS * NUMBER_OF_PLAYERS)][10]; // create space for player names
 
-char player_status[16]; //signed 8 bit
+char player_status[NUMBEROFTEAMS * NUMBER_OF_PLAYERS]; //signed 8 bit
 
 typedef struct {
- char lastbutton; // which button was "down" during last poll (signed) -1 = no button
- byte state;     // 0:still open,  1:from open to closed 2:from closed to open 3:still closed 4: unkown
- unsigned int lastvalue; // last actual value from the pin
- uint8_t repeat_count; // number of times this value has been read
- unsigned long lastclosed; // time of last read that was closed
+  char lastbutton; // which button was "down" during last poll (signed) -1 = no button
+  byte state;     // 0:still open,  1:from open to closed 2:from closed to open 3:still closed 4: unkown
+  unsigned int lastvalue; // last actual value from the pin
+  uint8_t repeat_count; // number of times this value has been read
+  unsigned long lastclosed; // time of last read that was closed
   byte pin; // which line are we reading?
+  byte down_buttons; // bitmap of buttons currently down and ready to return
 
 } ButtonLine;
 
 byte last_player_pressed = 0;
+byte buzzing_teamplayer = 0;
 byte buzzing_player = 0;
-#define NUMBEROFTEAMS 1 // should be able to support 3 teams with an Uno
+byte buzzing_team = 0;
 ButtonLine buttonLines[NUMBEROFTEAMS+1]; // 0th "team" is console
 
 // Game Modes
@@ -135,6 +139,8 @@ byte current_mode = 0;
 byte current_frame = 0;
 byte framecode[5]; // global array of this frame's instuctions
 
+byte current_button_list[4]; // do this global to avoid cycles to allocate every test
+
 // animation:
 
 typedef struct {
@@ -157,9 +163,13 @@ typedef struct {
 timer GameTimer; // global game time
 
 
+
+	byte i; // generic, global index to avoid memory thrashing
+	
+	
 void setup() {
 // ------------
-	byte i; // generic, global index to avoid memory thrashing
+
 	// Debugging output
 	Serial.begin(9600);
 	mem_tick = millis();
@@ -188,14 +198,21 @@ void setup() {
 	InitAnalogButtons();
 	current_mode = 0;
 	current_frame = 0;
-	
-		LightPlayer(1,1,pixel_ring.Color(1, 0, 20),0);
-LightPlayer(2,1,pixel_ring.Color(10, 50, 0),0);
-LightPlayer(3,1,pixel_ring.Color(20, 0, 0),0);
+	/*
+  LightPlayer(1,1,pixel_ring.Color(1, 0, 100),0);
+  LightPlayer(2,1,pixel_ring.Color(30, 100, 0),0);
+  LightPlayer(3,1,pixel_ring.Color(255, 0, 0),0);
+    LightPlayer(4,1,pixel_ring.Color(0, 255, 255),0);
 
-
+*/
+ LightPlayer(1,1,pixel_ring.Color(0, 0, 20),0);
+  LightPlayer(2,1,pixel_ring.Color(0, 20, 0),0);
+  LightPlayer(3,1,pixel_ring.Color(20, 0, 0),0);
+    LightPlayer(4,1,pixel_ring.Color(20, 0, 20),0);
+    
 
 	LoadGameFrame();  
+	randomSeed(analogRead(2));
 }
 
 void loop() {
@@ -207,7 +224,10 @@ void loop() {
   	PollUserButtons();
   } else {
   if(framecode[GO_PLAYER]>0){
-    buzzing_player=PollUserButtons();
+    buzzing_teamplayer=PollUserButtons();
+    buzzing_player=(byte) (buzzing_teamplayer & 0x0F);
+    buzzing_team=(byte)((buzzing_teamplayer & 0xF0) >> 4);
+    
     lcd.setCursor(15, 1); // show player in lower-right
     lcd.print(buzzing_player);                                                                               
     if (buzzing_player>0){

@@ -8,6 +8,7 @@ NUMBEROFTEAMS (define) -- number of lines to poll +1 (The size of the buttonLine
  uint8_t repeat_count; // number of times this value has been read
  unsigned long lastclosed; // time of last read that was closed
   byte pin; // which line are we reading?
+  byte down_buttons;
   
 player_button_thresholds - list of current values for buttons on this branch
 
@@ -21,7 +22,7 @@ void InitAnalogButtons(){
 
 */
 
-  byte i;
+ //  byte i; // use the global
   for (i=0; i <= NUMBEROFTEAMS; i++) {
     buttonLines[i].lastbutton = 0;
     buttonLines[i].state = 4;
@@ -37,7 +38,7 @@ void InitAnalogButtons(){
 
 
 void ClearUserButtons() {
-InitAnalogButtons();
+  InitAnalogButtons();
 
 }
 
@@ -60,67 +61,132 @@ Globals: UserButton{
     
  Outputs:
    updates UserButton
-   returns player number of newly pressed button
+   returns player number of newly pressed button (0) for no press.
+   low nybble = [player number. High nybble team number
 */
     byte retPlayer=0;
     byte retTeam;
     byte i;
     byte j;
-
+    byte one_button;
+    unsigned int team_values[NUMBEROFTEAMS+1]; // was v
     unsigned int v;
+    
+    byte possible_winners[NUMBEROFTEAMS * NUMBER_OF_PLAYERS];
+    byte winner_counter = 0;
     retTeam = 0;
     // debug stuff:
     char outnum[9];
     
-    for (i=1; i <= NUMBEROFTEAMS; i++) { // channel 0 is the console - start with 1
-      v=analogRead(buttonLines[i].pin);
-      if (abs(v-buttonLines[i].lastvalue) <=3) {
-        // repeated value:
-        if (buttonLines[i].repeat_count < 254) {buttonLines[i].repeat_count++;} // count it
-          if (buttonLines[i].repeat_count > 8) {
-            // stable value - maybe count it as a button press
+    
+    // if we start seeing team bias, build an array of teams here to determine
+    // the order in which we test them.
+    
+    
+    // First grab raw values for each team: 
+  for (i=1; i <= NUMBEROFTEAMS; i++) { // channel 0 is the console - start with 1
+    team_values[i]= analogRead(buttonLines[i].pin);
+/*    
+    Serial.print("Team ");
+    Serial.print(i);
+    Serial.print(": ");
+    Serial.println(team_values[i]);
+ */
+ 
+  }
 
-            if (CALIBRATING){
-            // display the stable value:
-              if ((millis() - calibrate_tick ) > 400) {
-                sprintf(outnum, "%03d %04d", buttonLines[i].repeat_count, buttonLines[i].lastvalue);
-                lcd.setCursor(7, i - 1);
-                lcd.print(outnum);
-                calibrate_tick = millis();
-              }
-            } else { // calibrating
-              // not calibrating - actually return user and team:
 
-              if (v > player_button_thresholds[0].reading){ // make sure something is pressed
-                for (j=5; j>0; j--) { //step down through button thresholds
-                 if ( v >= player_button_thresholds[j].reading ){
-                    retPlayer = (i-1)*5 + j;
-                    // retPlayer will get much more complicated
-                    // this could be simoultaneous keypresses and we can randomly select one
-                    // fake it for the demo:
-                    if (retPlayer>2){retPlayer=3;}
-                    retTeam = i;
-                    i = (NUMBEROFTEAMS + 1); // old-school (and dirty) method to break outer loop
-                    
-                    
-                sprintf(outnum, "%04d", v);
-                lcd.setCursor(10, 1);
-                lcd.print(outnum);
-                
-                
-                    break;
+    
+  for (i=1; i <= NUMBEROFTEAMS; i++) { // channel 0 is the console - start with 1
+    v=team_values[i];
+    buttonLines[i].down_buttons=0; // code for currently depressed buttons. 0 if nothing down.
+    if (abs(v-buttonLines[i].lastvalue) <=3) {
+      // repeated value:
+      if (buttonLines[i].repeat_count < 254) {buttonLines[i].repeat_count++;} // count it
+        if (buttonLines[i].repeat_count > 8) {
+          // stable value - maybe count it as a button press
 
-                  }
-                } // step through thresholds
-              } // quick check for ANY press
-          } // calibrate or real button
-        } // stable value
+          if (CALIBRATING){
+          // display the stable value:
+            if ((millis() - calibrate_tick ) > 400) {
+              sprintf(outnum, "%03d %04d", buttonLines[i].repeat_count, buttonLines[i].lastvalue);
+              lcd.setCursor(7, i - 1);
+              lcd.print(outnum);
+              calibrate_tick = millis();
+            }
+          } else { // calibrating
+            // not calibrating - actually return user and team:
 
+            if (v > player_button_thresholds[0].reading){ // make sure something is pressed
+
+              for (j=15; j>0; j--) { //step down through button thresholds
+               if ( v >= player_button_thresholds[j].reading ){
+                  buttonLines[i].down_buttons=player_button_thresholds[j].button_bits;
+                  break; // exit the loop, since we only want the highest value
+                }
+              } // step through thresholds
+            } // quick check for ANY press
+        } // calibrate or real button
+      } // stable value
+
+    } else {
+      // changing value. Rest counter and take new value
+      buttonLines[i].lastvalue = v;
+      buttonLines[i].repeat_count = 0;
+    }
+     
+     // at this point, we may have a bit-packed array of possible players for this team.
+     // that value is in  buttonLines[i].down_buttons
+              
+  }  
+  
+   // all teams have been scanned.
+   // look through all pressed buttons.
+   // 
+   
+   // we should probably handle lockouts here...
+/*   
+sprintf(outnum, "%04d", v);
+lcd.setCursor(10, 1);
+lcd.print(outnum);
+*/
+
+  
+for (i=1; i<=NUMBEROFTEAMS; i++) { 
+/*
+  Serial.print("Team ");
+  Serial.print(i);
+  Serial.print(": ");
+  */
+  Serial.println(buttonLines[i].down_buttons);
+
+
+
+    for (j=1; j<=NUMBER_OF_PLAYERS; j++) {
+    /*
+              Serial.print("Checking player ");
+              Serial.print(j);
+              Serial.print(": ");
+*/
+    
+      if (buttonLines[i].down_buttons & (1<<(j-1))) {
+            //  Serial.println("match");
+        possible_winners[winner_counter]=(i*16) + j;
+        winner_counter++;
       } else {
-        // changing value. Rest counter and take new value
-        buttonLines[i].lastvalue = v;
-        buttonLines[i].repeat_count = 0;
+        //  Serial.println("*");
       }
-    } // step through input pins    
+    }
+    
+   
+    
+  }
+// now is possible_winners array of possible return values
+// winner_counter = number of elements
+retPlayer = 0;
+if (winner_counter > 0){
+  i = random( winner_counter);
+  retPlayer = possible_winners[i];
+}      
   return retPlayer;
 }
