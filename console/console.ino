@@ -20,6 +20,12 @@ Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 #define BACKLIGHT_VIOLET 0x5
 #define BACKLIGHT_WHITE 0x7
 
+
+
+#define PLAYERS_PER_TEAM 4
+#define NUMBER_OF_TEAMS 2 // should be able to support 3 teams with an Uno\
+
+
 // NEO PIXEL
 #define NEOPIXEL_PIN 6
 
@@ -30,7 +36,7 @@ Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 //   NEO_KHZ400  400 KHz (classic 'v1' (not v2) FLORA pixels, WS2811 drivers)
 //   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
 //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
-Adafruit_NeoPixel pixel_ring = Adafruit_NeoPixel(16+8, NEOPIXEL_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel pixel_ring = Adafruit_NeoPixel(16+(PLAYERS_PER_TEAM*NUMBER_OF_TEAMS*2), NEOPIXEL_PIN, NEO_GRB + NEO_KHZ800);
 
 
 #define TEAM1PIN 0
@@ -85,8 +91,7 @@ struct buttonmap{
 };
 
 
-#define PLAYERS_PER_TEAM 4
-#define NUMBER_OF_TEAMS 1 // should be able to support 3 teams with an Uno\
+
 
 
 // Buttons, Teams, and Players:
@@ -212,14 +217,18 @@ void setup() {
   LightPlayer(3,1,pixel_ring.Color(20, 0, 0),0);
     LightPlayer(4,1,pixel_ring.Color(20, 0, 20),0);
     
-
+ LightPlayer(1,2,pixel_ring.Color(0, 0, 20),0);
+  LightPlayer(2,2,pixel_ring.Color(0, 20, 0),0);
+  LightPlayer(3,2,pixel_ring.Color(20, 0, 0),0);
+    LightPlayer(4,2,pixel_ring.Color(20, 0, 20),0);
+    
 	LoadGameFrame();  
 	randomSeed(analogRead(2));
 }
 
 void loop() {
   unsigned long now = millis();
-  DQPlayer(3, 1);
+  //DQPlayer(3, 1);
   byte last_console_button = 0;
 
   
@@ -238,7 +247,7 @@ void loop() {
 			ClearUserButtons();
 			
 			// Light up the buzzing player:
-			LightOnePlayer(buzzing_player,1,pixel_ring.Color(50, 200, 200));
+			LightOnePlayer(buzzing_player,buzzing_team,pixel_ring.Color(50, 200, 200));
      //  if (last_player_pressed != buzzing_player){
       //   last_player_pressed = buzzing_player;
         GoToFrame(framecode[GO_PLAYER]);

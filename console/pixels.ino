@@ -79,10 +79,12 @@ void LightPlayer(uint8_t player, uint8_t team, uint32_t color, uint8_t dontshow)
 
 */
 
-  byte i = ((player-1)*2) + ((team-1)*8) + 16; // 16 pixels on the on-board display
+byte pixel_num = ( (player-1)*2) + ((team-1) * (PLAYERS_PER_TEAM*2)) + 16;
 
-      pixel_ring.setPixelColor(i, color);
-      pixel_ring.setPixelColor(i+1, color);
+//  byte i = ((player-1)*2) + ((team-1)*8) + 16; // 16 pixels on the on-board display
+
+      pixel_ring.setPixelColor(pixel_num, color);
+      pixel_ring.setPixelColor(pixel_num+1, color);
       if (dontshow == 0){
       pixel_ring.show();
       }
@@ -96,13 +98,12 @@ void LightOnePlayer(uint8_t player, uint8_t team, uint32_t color){
 
   byte i;
   byte j;
-  for(i=1; i<=4; i++) {
-    //for(j=1; j<=2; j++) {
-    for(j=1; j<=1; j++) {
+  for(i=1; i<=PLAYERS_PER_TEAM; i++) {
+    for(j=1; j<=NUMBER_OF_TEAMS; j++) {
       if((i != player ) or (j != team)){
-        LightPlayer(i, j, pixel_ring.Color(0, 0, 0), 1);
+        LightPlayer(i, j, pixel_ring.Color(0, 0, 0), 0);
       } else {
-        LightPlayer(i, j, color, 1);
+        LightPlayer(i, j, color, 0);
       }
     }
   }
