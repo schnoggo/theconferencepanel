@@ -48,6 +48,8 @@ Adafruit_NeoPixel pixel_ring = Adafruit_NeoPixel(16+8, NEOPIXEL_PIN, NEO_GRB + N
 
 #define TICKDURATION 2000
 #define MEMTICKDURATION 6000
+#define DEBOUNCE_REPEAT 3 // increase if we start getting false hits
+// 3 was selected by trial-and-error. Greater values allow spam-clicking to prevent registering of clicks.
 
 unsigned long next_tick = 0;
 unsigned long mem_tick;
@@ -83,14 +85,14 @@ struct buttonmap{
 };
 
 
-#define NUMBER_OF_PLAYERS 4
-#define NUMBEROFTEAMS 1 // should be able to support 3 teams with an Uno\
+#define PLAYERS_PER_TEAM 4
+#define NUMBER_OF_TEAMS 1 // should be able to support 3 teams with an Uno\
 
 
 // Buttons, Teams, and Players:
-char playerNames[(NUMBEROFTEAMS * NUMBER_OF_PLAYERS)][10]; // create space for player names
+char playerNames[(NUMBER_OF_TEAMS * PLAYERS_PER_TEAM)][10]; // create space for player names
 
-char player_status[NUMBEROFTEAMS * NUMBER_OF_PLAYERS]; //signed 8 bit
+char player_status[NUMBER_OF_TEAMS * PLAYERS_PER_TEAM]; //signed 8 bit
 
 typedef struct {
   char lastbutton; // which button was "down" during last poll (signed) -1 = no button
@@ -107,7 +109,7 @@ byte last_player_pressed = 0;
 byte buzzing_teamplayer = 0;
 byte buzzing_player = 0;
 byte buzzing_team = 0;
-ButtonLine buttonLines[NUMBEROFTEAMS+1]; // 0th "team" is console
+ButtonLine buttonLines[NUMBER_OF_TEAMS+1]; // 0th "team" is console
 
 // Game Modes
 #define GAME_TEAM_STEAL 0
@@ -217,6 +219,7 @@ void setup() {
 
 void loop() {
   unsigned long now = millis();
+  DQPlayer(3, 1);
   byte last_console_button = 0;
 
   

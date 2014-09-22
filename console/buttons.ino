@@ -1,7 +1,7 @@
 /*
 Globals:
 buttonLines - see struct in console
-NUMBEROFTEAMS (define) -- number of lines to poll +1 (The size of the buttonLines array)
+NUMBER_OF_TEAMS (define) -- number of lines to poll +1 (The size of the buttonLines array)
  byte lastbutton; // which button was "down" during last poll
  byte state;     // 0:still open,  1:from open to closed 2:from closed to closed 3:still closed, 4: unknown
  unsigned int lastvalue; // last actual value from the pin
@@ -23,7 +23,7 @@ void InitAnalogButtons(){
 */
 
  //  byte i; // use the global
-  for (i=0; i <= NUMBEROFTEAMS; i++) {
+  for (i=0; i <= NUMBER_OF_TEAMS; i++) {
     buttonLines[i].lastbutton = 0;
     buttonLines[i].state = 4;
     buttonLines[i].lastvalue = 9999;
@@ -69,10 +69,10 @@ Globals: UserButton{
     byte i;
     byte j;
     byte one_button;
-    unsigned int team_values[NUMBEROFTEAMS+1]; // was v
+    unsigned int team_values[NUMBER_OF_TEAMS+1]; // was v
     unsigned int v;
     
-    byte possible_winners[NUMBEROFTEAMS * NUMBER_OF_PLAYERS];
+    byte possible_winners[NUMBER_OF_TEAMS * PLAYERS_PER_TEAM];
     byte winner_counter = 0;
     retTeam = 0;
     // debug stuff:
@@ -84,7 +84,7 @@ Globals: UserButton{
     
     
     // First grab raw values for each team: 
-  for (i=1; i <= NUMBEROFTEAMS; i++) { // channel 0 is the console - start with 1
+  for (i=1; i <= NUMBER_OF_TEAMS; i++) { // channel 0 is the console - start with 1
     team_values[i]= analogRead(buttonLines[i].pin);
 /*    
     Serial.print("Team ");
@@ -97,13 +97,13 @@ Globals: UserButton{
 
 
     
-  for (i=1; i <= NUMBEROFTEAMS; i++) { // channel 0 is the console - start with 1
+  for (i=1; i <= NUMBER_OF_TEAMS; i++) { // channel 0 is the console - start with 1
     v=team_values[i];
     buttonLines[i].down_buttons=0; // code for currently depressed buttons. 0 if nothing down.
     if (abs(v-buttonLines[i].lastvalue) <=3) {
       // repeated value:
       if (buttonLines[i].repeat_count < 254) {buttonLines[i].repeat_count++;} // count it
-        if (buttonLines[i].repeat_count > 8) {
+        if (buttonLines[i].repeat_count > DEBOUNCE_REPEAT) {
           // stable value - maybe count it as a button press
 
           if (CALIBRATING){
@@ -151,35 +151,16 @@ lcd.setCursor(10, 1);
 lcd.print(outnum);
 */
 
-  
-for (i=1; i<=NUMBEROFTEAMS; i++) { 
-/*
-  Serial.print("Team ");
-  Serial.print(i);
-  Serial.print(": ");
-  */
-  Serial.println(buttonLines[i].down_buttons);
-
-
-
-    for (j=1; j<=NUMBER_OF_PLAYERS; j++) {
-    /*
-              Serial.print("Checking player ");
-              Serial.print(j);
-              Serial.print(": ");
-*/
-    
-      if (buttonLines[i].down_buttons & (1<<(j-1))) {
-            //  Serial.println("match");
-        possible_winners[winner_counter]=(i*16) + j;
-        winner_counter++;
-      } else {
-        //  Serial.println("*");
+  // build an array of possible winners
+for (i=1; i<=NUMBER_OF_TEAMS; i++) { 
+    for (j=1; j<=PLAYERS_PER_TEAM; j++) {
+      if (buttonLines[i].down_buttons & (1<<(j-1))) { // button was down
+        if (PlayerEligible(j,i)){
+          possible_winners[winner_counter]=(i*16) + j;
+          winner_counter++;
+        } 
       }
     }
-    
-   
-    
   }
 // now is possible_winners array of possible return values
 // winner_counter = number of elements
