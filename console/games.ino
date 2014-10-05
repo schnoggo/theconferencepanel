@@ -30,6 +30,13 @@ const byte mode_instructions[15][5]  = {
 "- TIME -", "- CORRECT -", "Steal?", "- NOPE -", "Callibrate: 1"};
   
   
+   char* game_names[]   = {
+    // 1234567890123456
+      "All w Steal",
+      "Lightning",
+      "All play"
+      };
+
 void FetchGameInstruction(byte game, byte frame, byte *instruction_list) {
   /*
   mode - byte - which game mode GAME_TEAM_STEAL, GAME_LIGHTNING, etc.
@@ -49,6 +56,11 @@ void FetchGameInstruction(byte game, byte frame, byte *instruction_list) {
 char* FetchFrameName(byte f) {
   // eventually rewrite this to use PROGMEN
   return mode_names[f];
+}
+
+char* FetchGameName(byte f) {
+  // eventually rewrite this to use PROGMEN
+  return game_names[f];
 }
 
 void GoToFrame( byte f){

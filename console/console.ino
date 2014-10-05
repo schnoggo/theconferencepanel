@@ -4,6 +4,9 @@
 #include <Adafruit_MCP23017.h>
 #include <Adafruit_RGBLCDShield.h>
 #include <Adafruit_NeoPixel.h>
+#include <ClickEncoder.h>
+#include <TimerOne.h>
+
 //   LCD SHIELD
 // The shield uses the I2C SCL and SDA pins. On classic Arduinos
 // this is Analog 4 and 5 so you can't use those for analogRead() anymore
@@ -42,9 +45,16 @@ Adafruit_NeoPixel pixel_ring = Adafruit_NeoPixel(16+(PLAYERS_PER_TEAM*NUMBER_OF_
 #define TEAM1PIN 0
 #define TEAM2PIN 1
 
+
+// Inputs on the main game console:
 #define CONSOLE_GO_PIN 4
 #define CONSOLE_STOP_PIN 3
 #define CONSOLE_CANCEL_PIN 5
+
+ClickEncoder *encoder;
+int16_t rotary_last, rotary_current;
+ClickEncoder::Button rotary_button;
+
 
 #define GO_GO 0
 #define GO_STOP 1
@@ -70,9 +80,9 @@ char lcd_line2[17]; // leave room for the terminating zero
 
 struct buttonmap{
 	unsigned int reading; // analog reading value
-	byte button_bits; // bit-packed list of which buttons are press. see BUT1 et al.
+	byte button_bits; // bit-packed list of which buttons are pressed. see BUT1 et al.
 } player_button_thresholds[17] ={
-	{555,0},
+	{555,0}, // current on pin, byte with bits set representing pressed buttons
 	{569, BUT1},
 	{586, BUT2},
 	{603, BUT1 | BUT2},
@@ -134,8 +144,15 @@ ButtonLine buttonLines[NUMBER_OF_TEAMS+1]; // 0th "team" is console
 #define PLAYER 2
 #define START_CLOCK 11
 #define SYSTEM 13
-#define CALIBRATING 0
 
+// CONSOLE MODES
+#define CONSOLE_MENU 0
+#define SELECT_GAME_MODE 1
+#define SET_SHORT_TIMER 2
+#define SET_LONG_TIMER 3
+#define ENTER_PLAYERS 4
+#define GAME_IN_PROGRESS 5
+#define CALIBRATING_RESISTORS 6
 
 
 
@@ -143,6 +160,7 @@ unsigned long calibrate_tick = 0;
 // set to 1 to set up mode where we can get resistor values
 
 byte current_mode = 0;
+byte last_mode = 254;
 byte current_frame = 0;
 byte framecode[5]; // global array of this frame's instuctions
 
@@ -174,6 +192,18 @@ timer GameTimer; // global game time
 	byte i; // generic, global index to avoid memory thrashing
 	
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 void setup() {
 // ------------
 
@@ -200,10 +230,11 @@ void setup() {
 	digitalWrite(A1, LOW); // analog - do not use internal resistor - alreay in the circuit
 	analogRead (TEAM1PIN) ; // do a dummy read to get the pin in the right state?
 
+  InitRotary(10, 9, 8);
 	InitGameAnimations();
 	next_tick = millis() + TICKDURATION;
 	InitAnalogButtons();
-	current_mode = 0;
+	current_mode = CONSOLE_MENU;
 	current_frame = 0;
 	/*
   LightPlayer(1,1,pixel_ring.Color(1, 0, 100),0);
@@ -211,7 +242,7 @@ void setup() {
   LightPlayer(3,1,pixel_ring.Color(255, 0, 0),0);
     LightPlayer(4,1,pixel_ring.Color(0, 255, 255),0);
 
-*/
+
  LightPlayer(1,1,pixel_ring.Color(0, 0, 20),0);
   LightPlayer(2,1,pixel_ring.Color(0, 20, 0),0);
   LightPlayer(3,1,pixel_ring.Color(20, 0, 0),0);
@@ -221,90 +252,161 @@ void setup() {
   LightPlayer(2,2,pixel_ring.Color(0, 20, 0),0);
   LightPlayer(3,2,pixel_ring.Color(20, 0, 0),0);
     LightPlayer(4,2,pixel_ring.Color(20, 0, 20),0);
+    */
     
 	LoadGameFrame();  
 	randomSeed(analogRead(2));
+	
+	Serial.println("STRARTUP");
 }
 
+
+
+
+
+
+
+
+
+
 void loop() {
+
+
+
   unsigned long now = millis();
   //DQPlayer(3, 1);
   byte last_console_button = 0;
 
-  
-  if (CALIBRATING){
-  	PollUserButtons();
-  } else {
-  if(framecode[GO_PLAYER]>0){
-    buzzing_teamplayer=PollUserButtons();
-    buzzing_player=(byte) (buzzing_teamplayer & 0x0F);
-    buzzing_team=(byte)((buzzing_teamplayer & 0xF0) >> 4);
-    
-    lcd.setCursor(15, 1); // show player in lower-right
-    lcd.print(buzzing_player);                                                                               
-    if (buzzing_player>0){
-    	// depending on game type, we made need to lock out this player, the player team, or reset everything
-			ClearUserButtons();
-			
-			// Light up the buzzing player:
-			LightOnePlayer(buzzing_player,buzzing_team,pixel_ring.Color(50, 200, 200));
-     //  if (last_player_pressed != buzzing_player){
-      //   last_player_pressed = buzzing_player;
-        GoToFrame(framecode[GO_PLAYER]);
-     // }
-    }
-    Time2Neo(GetCountdownSeconds());
-  }
-  // transient frames:
-   if (framecode[GO_TYPE] == START_CLOCK){
-       StartCountdown(10); // ten seconds on the clock
-       GoToFrame(framecode[GO_GO]);
-   }
-      
-      
-  
-  if(framecode[GO_GO]>0){
-    if(PollConsoleButtons(1)){
-      switch(framecode[GO_TYPE]){
-      case START_CLOCK:
-       StartCountdown(10); // ten seconds on the clock
-      break;
-      
-      case PLAYER:
-  
-      break;
-      } 
-     switch(framecode[GO_GO]){
-       case 200:
-         TogglePause();
-       break;
-     default:
-        GoToFrame(framecode[GO_GO]);
-    }
-    }
-  }
+  switch (current_mode) {
 
+    case CONSOLE_MENU:
+    if (ModeChanged()){
+      Serial.println("Console:");
+      DisplayModeTitle("Menu");
+    }    
+
+    rotary_current += encoder->getValue();
   
-   if(framecode[GO_STOP]>0){
-    if(PollConsoleButtons(2)){
-      GoToFrame(framecode[GO_STOP]);
+    if (rotary_current != rotary_last) {
+      rotary_last = rotary_current;
+      Serial.print("Encoder Value: ");
+      Serial.println(rotary_current);
+
+      lcd.setCursor(0, 1);
+      lcd.print("        ");
+      lcd.setCursor(0, 1);
+     
+
     }
-  } 
   
+  
+    rotary_button = encoder->getButton();
+   
+    if (rotary_button != ClickEncoder::Open){
+     lcd.setCursor(8, 1);
+      lcd.print("        ");
+      lcd.setCursor(8, 1);
+      if (rotary_button == ClickEncoder::Pressed){lcd.print("PRESS");}
+      if (rotary_button == ClickEncoder::Held){lcd.print("HOLD");}
+      if (rotary_button == ClickEncoder::Released){lcd.print("REL");}
+      if (rotary_button == ClickEncoder::Clicked){lcd.print("CLIK");}
+      if (rotary_button == ClickEncoder::DoubleClicked){lcd.print("DBL");}
+}
     
-   if(framecode[GO_TIMER]>0){
-    if(CountdownExpired()>0){
-      GoToFrame(framecode[GO_TIMER]);
-    }
-  }
+    break;
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    case CALIBRATING_RESISTORS:
+      PollUserButtons();
+    break;
+    
+    
+    case SELECT_GAME_MODE:
+    
+    break;
+
+
+    default: 
+
+      if(framecode[GO_PLAYER]>0){
+        buzzing_teamplayer=PollUserButtons();
+        buzzing_player=(byte) (buzzing_teamplayer & 0x0F);
+        buzzing_team=(byte)((buzzing_teamplayer & 0xF0) >> 4);
+        lcd.setCursor(15, 1); // show player in lower-right
+        lcd.print(buzzing_player);                                                                               
+        if (buzzing_player>0){
+          // depending on game type, we made need to lock out this player, the player team, or reset everything
+          ClearUserButtons();
+
+          // Light up the buzzing player:
+          LightOnePlayer(buzzing_player,buzzing_team,pixel_ring.Color(50, 200, 200));
+          //  if (last_player_pressed != buzzing_player){
+          //   last_player_pressed = buzzing_player;
+          GoToFrame(framecode[GO_PLAYER]);
+        // }
+        }
+        Time2Neo(GetCountdownSeconds());
+      }
+      // transient frames:
+      if (framecode[GO_TYPE] == START_CLOCK){
+        StartCountdown(10); // ten seconds on the clock
+        GoToFrame(framecode[GO_GO]);
+      }
+
+
+
+      if(framecode[GO_GO]>0){
+        if(PollConsoleButtons(1)){
+          switch(framecode[GO_TYPE]){
+            case START_CLOCK:
+              StartCountdown(10); // ten seconds on the clock
+              break;
+
+            case PLAYER:
+              break;
+          } 
+          switch(framecode[GO_GO]){
+            case 200:
+              TogglePause();
+              break;
+            default:
+              GoToFrame(framecode[GO_GO]);
+          }
+        }
+      }
+
+
+      if(framecode[GO_STOP]>0){
+        if(PollConsoleButtons(2)){
+          GoToFrame(framecode[GO_STOP]);
+        }
+      } 
+
+
+      if(framecode[GO_TIMER]>0){
+        if(CountdownExpired()>0){
+          GoToFrame(framecode[GO_TIMER]);
+        }
+      }
+
+
+
+      //
+      ServiceGameAnimation();
+
+    
+  } // the giant switch statement
   
-  
-  
-//
-ServiceGameAnimation();
-  
-}
-}
+
+} // The Loop
 
 
 
@@ -343,6 +445,9 @@ byte PollConsoleButtons(byte lookingfor) {
     }
   return retVal;
 }
+
+
+
 void LoadGameFrame(){
   /*
   #define ANIM_FAIL 6
@@ -373,41 +478,41 @@ void LoadGameFrame(){
     DisplayModeTitle(FetchFrameName(current_frame));
    break;
  
- case PLAYER:
- 		lcd.setBacklight(BACKLIGHT_GREEN);
-    DisplayModeTitle(FetchFrameName(current_frame));
- break;
+   case PLAYER:
+      lcd.setBacklight(BACKLIGHT_GREEN);
+      DisplayModeTitle(FetchFrameName(current_frame));
+   break;
  
- case START_CLOCK:
-     lcd.setBacklight(BACKLIGHT_RED);
-    DisplayModeTitle(FetchFrameName(current_frame));
+   case START_CLOCK:
+       lcd.setBacklight(BACKLIGHT_RED);
+      DisplayModeTitle(FetchFrameName(current_frame));
  
- break;
+   break;
  
- case SYSTEM:
-		lcd.setBacklight(BACKLIGHT_TEAL);
-    DisplayModeTitle(FetchFrameName(current_frame));
- break;
+   case SYSTEM:
+      lcd.setBacklight(BACKLIGHT_TEAL);
+      DisplayModeTitle(FetchFrameName(current_frame));
+   break;
  
- case ANIM_FAIL:
- 		lcd.setBacklight(BACKLIGHT_YELLOW);
-    DisplayModeTitle(FetchFrameName(current_frame));
-    PlayGameAnimation(framecode[GO_TYPE]);
-    break;
- case ANIM_TIME:
-  	lcd.setBacklight(BACKLIGHT_YELLOW);
-    DisplayModeTitle(FetchFrameName(current_frame));
-    PlayGameAnimation(framecode[GO_TYPE]);
-    break;
- case ANIM_WIN:
-    lcd.setBacklight(BACKLIGHT_YELLOW);
-    DisplayModeTitle(FetchFrameName(current_frame));
-    PlayGameAnimation(framecode[GO_TYPE]);
-    break;
+   case ANIM_FAIL:
+      lcd.setBacklight(BACKLIGHT_YELLOW);
+      DisplayModeTitle(FetchFrameName(current_frame));
+      PlayGameAnimation(framecode[GO_TYPE]);
+      break;
+   case ANIM_TIME:
+      lcd.setBacklight(BACKLIGHT_YELLOW);
+      DisplayModeTitle(FetchFrameName(current_frame));
+      PlayGameAnimation(framecode[GO_TYPE]);
+      break;
+   case ANIM_WIN:
+      lcd.setBacklight(BACKLIGHT_YELLOW);
+      DisplayModeTitle(FetchFrameName(current_frame));
+      PlayGameAnimation(framecode[GO_TYPE]);
+      break;
     
- default: 
-     lcd.setBacklight(BACKLIGHT_RED);
-			DisplayModeTitle(FetchFrameName(current_frame));
+   default: 
+       lcd.setBacklight(BACKLIGHT_RED);
+        DisplayModeTitle(FetchFrameName(current_frame));
  
   }
 
@@ -421,6 +526,43 @@ void LoadGameFrame(){
   }
   */
 }
+
+
+byte ModeChanged(){
+/* --------------------
+  Inputs: none
+  Global: 
+    current_mode, last_mode (byte) current global mode
+    Timer1 - interrupt timer object
+    
+  Return: (bool/byte)
+    true - mode has changed
+    false - mode has not changed
+    
+  Note: Also enables/disables interrupt-driven timers if necessary
+*/
+
+ byte retVal  = false;  
+  
+
+   if (last_mode != current_mode){ // need to init new mode
+   
+    if (last_mode == CONSOLE_MENU){ // add ORs here for modes that use timer
+      DisableRotaryScanner();
+    }
+    
+    if (current_mode == CONSOLE_MENU){
+      EnableRotaryScanner();
+    }
+
+    last_mode = current_mode;
+       
+  }    
+  return retVal;
+                  
+}
+
+
 
 
 int FreeRam () 
@@ -441,3 +583,6 @@ void CheckMemoryUse(){
   }
   
 }
+
+
+
