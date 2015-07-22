@@ -437,11 +437,13 @@ current_mode = SELECT_GAME_MODE;
 } // The Loop
 
 void ClearConsoleButtons() {
+/*
     buttonLines[0].lastbutton = 0;
     buttonLines[0].state = 4;
     buttonLines[0].lastvalue = 9999;
     buttonLines[0].repeat_count = 0;
     buttonLines[0].down_buttons = 0;
+*/
 }
 
 
@@ -479,44 +481,67 @@ byte PollConsoleButtons(byte lookingfor) {
 */
 
   if (SERIAL_DEBUG){
-      Serial.print("PollConsoleButtons:");
-       Serial.println(lookingfor);
-       }
-  retVal=0;
+  /*
+    Serial.print("PollConsoleButtons:");
+    Serial.println(lookingfor);
+    */
+  }
+  retVal=0; // false unless we find a debounced and non-repeating button
   byte desired_button_down = 0;
-  
-  if (buttonLines[0].down_buttons != lookingfor) { // if button is already down, don't repeat
-    
     switch (lookingfor) {
-      case 1:
-        if (digitalRead(CONSOLE_GO_PIN) == LOW){ desired_button_down=1;}
-      break;
-    
-      case 2:
-        if (digitalRead(CONSOLE_STOP_PIN) == LOW){desired_button_down=1;}
-      break;
-    }
+    case 1:
+      if (digitalRead(CONSOLE_GO_PIN) == LOW){ desired_button_down=1;}
+    break;
+  
+    case 2:
+      if (digitalRead(CONSOLE_STOP_PIN) == LOW){desired_button_down=1;}
+    break;
+  }
+
+
 
     if (desired_button_down){ // button pressed
-      if (lookingfor == buttonLines[0].lastvalue) { // have we seen this before?
-        if (buttonLines[0].repeat_count < 254) {buttonLines[0].repeat_count++;} // count it
-        if (buttonLines[0].repeat_count > DEBOUNCE_REPEAT) { // stable value - maybe count it as a button press
-            retVal = 1;
-            buttonLines[0].down_buttons = lookingfor;
-        } else {
-          // still bouncing
-          buttonLines[0].down_buttons = 0;
+      if (3 != buttonLines[0].state){
+        if (lookingfor == buttonLines[0].lastvalue) { // have we seen this before?
+          if (buttonLines[0].repeat_count < 254) {buttonLines[0].repeat_count++;} // count it
+          if (buttonLines[0].repeat_count > 10) { // stable value - maybe count it as a button press (was DEBOUNCE_REPEAT)
+              retVal = 1;
+              buttonLines[0].down_buttons = lookingfor;
+              buttonLines[0].state = 3; // button down
+              if (SERIAL_DEBUG){
+                Serial.print("button ");
+                Serial.print(lookingfor);
+                Serial.println(" pressed");
+      }
+              
+          } else {
+            // still bouncing
+            buttonLines[0].down_buttons = 0;
+            buttonLines[0].state = 0; // button up
+          }
 
-        }
-
+      } else {
+        // lookingfor not the last pressed button - set up the debounce counter
+        buttonLines[0].lastvalue = lookingfor;
+        buttonLines[0].repeat_count = 0;
+        buttonLines[0].down_buttons = 0;
+        buttonLines[0].state = 0; // button up
+      }
     } else {
-      // lookingfor not last tested value - set up the debounce counter
-      buttonLines[0].lastvalue = lookingfor;
-      buttonLines[0].repeat_count = 0;
+    // was already down
+    if (SERIAL_DEBUG){
+      Serial.println("repeating");
+      }
     }
-  } // if no button down, don't return value
-  
+
+  } else { // if no button down, don't return value
+     buttonLines[0].lastvalue = 0;
+    buttonLines[0].state = 0; // button up
+    buttonLines[0].down_buttons = 0;
+    buttonLines[0].repeat_count = 0;
   }
+  
+
   return retVal;
 }
 
