@@ -14,6 +14,10 @@ void StartCountdown(byte secs){
   GameTimer.state=0;
   GameTimer.end_time = milis + GameTimer.start_time;
   GameTimer.duration = secs;
+  if (SERIAL_DEBUG){
+    Serial.println("StartCountdown");
+    }
+
   
   
 }
@@ -25,6 +29,9 @@ void PauseCountdown(){
     GameTimer.state=2;
     GameTimer.end_time = remaining;
   }
+   if (SERIAL_DEBUG){
+    Serial.println("PauseCountdown");
+    }
   
 }
 
@@ -35,6 +42,9 @@ void ResumeCountdown(){
     GameTimer.state=0;
     GameTimer.end_time = updated_endtime;
   }
+     if (SERIAL_DEBUG){
+    Serial.println("ResumeCountdown");
+    }
   
 }
 

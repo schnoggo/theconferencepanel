@@ -40,7 +40,10 @@ void ClearNeoClock(){
 
 
 */
-   uint32_t c;
+   if (SERIAL_DEBUG){
+    Serial.println("ClearNeoClock");
+    }
+    uint32_t c;
       clock_display_state_sec = 0;
       clock_display_state_range = 99;
       c =  pixel_ring.Color(0, 0, 0);

@@ -14,6 +14,9 @@
 // the I2C bus.
 Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 
+#define SERIAL_DEBUG true
+
+
 // These #defines make it easy to set the backlight color
 #define BACKLIGHT_RED 0x1
 #define BACKLIGHT_YELLOW 0x3
@@ -238,6 +241,7 @@ void setup() {
 	InitGameAnimations();
 	next_tick = millis() + TICKDURATION;
 	InitAnalogButtons();
+	ClearConsoleButtons();
 	current_mode = CONSOLE_MENU;
 	current_frame = 0;
 	/*
@@ -262,6 +266,7 @@ void setup() {
 	randomSeed(analogRead(2));
 	
 	Serial.println("STARTUP");
+	
 }
 
 
@@ -281,15 +286,20 @@ void loop() {
   //DQPlayer(3, 1);
   byte last_console_button = 0;
 
+
+    if (ModeChanged()){
+         if (SERIAL_DEBUG){
+      Serial.print("Mode change:");
+       Serial.println(current_mode);
+       }
+    } 
+    
   switch (current_mode) {
 
     case CONSOLE_MENU:
     
     /*
-    if (ModeChanged()){
-      Serial.println("Console:");
-      DisplayModeTitle("Menu");
-    }    
+   
 
     rotary_current += encoder->getValue();
   
@@ -343,6 +353,7 @@ current_mode = SELECT_GAME_MODE;
       
        if(PollConsoleButtons(1)){
         current_mode = GAME_IN_PROGRESS;
+        ClearConsoleButtons(); // we've responded to the button push. Get ready for next button
        
        }
     break;
@@ -379,6 +390,7 @@ current_mode = SELECT_GAME_MODE;
 
       if(framecode[GO_GO]>0){
         if(PollConsoleButtons(1)){
+           ClearConsoleButtons(); // we've responded to the button push. Get ready for next button
           switch(framecode[GO_TYPE]){
             case START_CLOCK:
               StartCountdown(10); // ten seconds on the clock
@@ -400,6 +412,7 @@ current_mode = SELECT_GAME_MODE;
 
       if(framecode[GO_STOP]>0){
         if(PollConsoleButtons(2)){
+         ClearConsoleButtons(); // we've responded to the button push. Get ready for next button
           ClearNeoClock();
           GoToFrame(framecode[GO_STOP]);
         }
@@ -423,6 +436,14 @@ current_mode = SELECT_GAME_MODE;
 
 } // The Loop
 
+void ClearConsoleButtons() {
+    buttonLines[0].lastbutton = 0;
+    buttonLines[0].state = 4;
+    buttonLines[0].lastvalue = 9999;
+    buttonLines[0].repeat_count = 0;
+    buttonLines[0].down_buttons = 0;
+}
+
 
 
 byte PollConsoleButtons(byte lookingfor) {
@@ -430,6 +451,12 @@ byte PollConsoleButtons(byte lookingfor) {
   Input:
   1 - GO button
   2 - STOP button
+  
+  Returns:
+  1/true - yup this button is pressed
+  0/false - this button is not pressed
+  
+  Eventually, rewrite this to work exactly like user buttons, but with the test for the input
   */
   byte retVal;
   // last value:
@@ -438,26 +465,58 @@ byte PollConsoleButtons(byte lookingfor) {
   // right now, we're just using digital pins
  // Serial.print("looking for:");
  // Serial.print(lookingfor);
-  retVal=0;
-  switch (lookingfor) {
-   case 1:
-   if (digitalRead(CONSOLE_GO_PIN) == LOW){ retVal=1;}
-  
-  break;
-  case 2:
-  if (digitalRead(CONSOLE_STOP_PIN) == LOW){retVal=1;}
-  break;
-  }
+ 
+ /*
+ typedef struct {
+  char lastbutton; // which button was "down" during last poll (signed) -1 = no button
+  byte state;     // 0:still open,  1:from open to closed 2:from closed to open 3:still closed 4: unkown
+  unsigned int lastvalue; // last actual value from the pin
+  uint8_t repeat_count; // number of times this value has been read
+  unsigned long lastclosed; // time of last read that was closed
+  byte pin; // which line are we reading?
+  byte down_buttons; // bitmap of buttons currently down and ready to return
 
-    if (retVal){ // button pressed
-      if (lookingfor == buttonLines[0].lastbutton) { // have we already reported this button as pressed?
-        retVal = 0;
-      } else {
-        buttonLines[0].lastbutton = lookingfor;
-      }
-    } else {
-      buttonLines[0].lastbutton = -1;
+*/
+
+  if (SERIAL_DEBUG){
+      Serial.print("PollConsoleButtons:");
+       Serial.println(lookingfor);
+       }
+  retVal=0;
+  byte desired_button_down = 0;
+  
+  if (buttonLines[0].down_buttons != lookingfor) { // if button is already down, don't repeat
+    
+    switch (lookingfor) {
+      case 1:
+        if (digitalRead(CONSOLE_GO_PIN) == LOW){ desired_button_down=1;}
+      break;
+    
+      case 2:
+        if (digitalRead(CONSOLE_STOP_PIN) == LOW){desired_button_down=1;}
+      break;
     }
+
+    if (desired_button_down){ // button pressed
+      if (lookingfor == buttonLines[0].lastvalue) { // have we seen this before?
+        if (buttonLines[0].repeat_count < 254) {buttonLines[0].repeat_count++;} // count it
+        if (buttonLines[0].repeat_count > DEBOUNCE_REPEAT) { // stable value - maybe count it as a button press
+            retVal = 1;
+            buttonLines[0].down_buttons = lookingfor;
+        } else {
+          // still bouncing
+          buttonLines[0].down_buttons = 0;
+
+        }
+
+    } else {
+      // lookingfor not last tested value - set up the debounce counter
+      buttonLines[0].lastvalue = lookingfor;
+      buttonLines[0].repeat_count = 0;
+    }
+  } // if no button down, don't return value
+  
+  }
   return retVal;
 }
 
