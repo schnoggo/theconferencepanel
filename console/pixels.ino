@@ -32,39 +32,73 @@ void NeoWipe(uint32_t c, uint8_t wait) {
   }
 }
 
+
+
 // -------------------------------
-void Time2Neo(byte secs) {
+void ClearNeoClock(){
+/*
+
+
+*/
+   uint32_t c;
+      clock_display_state_sec = 0;
+      clock_display_state_range = 99;
+      c =  pixel_ring.Color(0, 0, 0);
+        for(uint16_t i=0; i<pixel_ring.numPixels(); i++) {
+      pixel_ring.setPixelColor(i, c);
+  }
+      pixel_ring.show();
+
+}
+
+
+// -------------------------------
+void Time2Neo(byte secs, byte range) {
 /* show current time on ring neopixel
  inputs:
  secs - time in seconds
+ range - how many possible seconds on the timer
+ 
  
  Globals:
    GameTimer
+   byte clock_display_state_sec = 0;
+   byte clock_display_state_range = 0;
+   
+   to-do
+   scale display based on range
 */
  uint32_t fore_color;
  uint32_t back_color;
  uint32_t off_color;
- off_color = pixel_ring.Color(0, 0, 0);
- if (secs >= 5){
-  fore_color = pixel_ring.Color(0, 90, 0);
-   back_color = pixel_ring.Color(0, 6, 0);
- } else {
-   fore_color = pixel_ring.Color(172, 0, 0);
-    back_color = pixel_ring.Color(8, 0, 0);
- }
-  
-  for(byte i=0; i<16; i++) {
-    if (i >= GameTimer.duration){
-      pixel_ring.setPixelColor(i, off_color);
+ int8_t real_offset;
+ secs = range-secs; // make it a countdown timer
+  if ((clock_display_state_sec != secs) ||  (clock_display_state_range != range)){
+    off_color = pixel_ring.Color(0, 0, 0);
+    if (secs < 5){
+      // one set of values greater than 5 secs
+      fore_color = pixel_ring.Color(0, 90, 0);
+      back_color = pixel_ring.Color(0, 6, 0);
     } else {
-      if (i != secs){
-        pixel_ring.setPixelColor(i, back_color);
+      // at 5 seconds change the clock colors
+      fore_color = pixel_ring.Color(172, 0, 0);
+      back_color = pixel_ring.Color(8, 0, 0);
+    }
+  //  back_color = pixel_ring.Color(40, 40, 40); 
+    for(byte i=0; i<CLOCK_RING_SIZE; i++) {
+      real_offset = NormalizeRingPos(i);
+      if (i >= range){
+        pixel_ring.setPixelColor(real_offset, off_color);
       } else {
-        pixel_ring.setPixelColor(i, fore_color);
+        if (i != secs){
+          pixel_ring.setPixelColor(real_offset, back_color);
+        } else {
+          pixel_ring.setPixelColor(real_offset, fore_color);
+        }
       }
     }
-  }
-  pixel_ring.show();
+    pixel_ring.show();
+  } // don't do it if no need to update
 }
 
 
@@ -108,4 +142,14 @@ void LightOnePlayer(uint8_t player, uint8_t team, uint32_t color){
     }
   }
    pixel_ring.show();
+}
+
+
+
+
+int8_t NormalizeRingPos(int8_t realPos){
+  realPos = realPos + CLOCK_RING_OFFSET;
+  while (realPos < 0) { realPos += 16;}
+  while (realPos > 15) { realPos -= 16; }  
+  return realPos;
 }

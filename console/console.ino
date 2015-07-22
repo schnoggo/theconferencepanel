@@ -31,6 +31,8 @@ Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 
 // NEO PIXEL
 #define NEOPIXEL_PIN 6
+#define CLOCK_RING_OFFSET 3
+#define CLOCK_RING_SIZE 16
 
 // Parameter 1 = number of pixels in strip
 // Parameter 2 = pin number (most are valid)
@@ -39,7 +41,8 @@ Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 //   NEO_KHZ400  400 KHz (classic 'v1' (not v2) FLORA pixels, WS2811 drivers)
 //   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
 //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
-Adafruit_NeoPixel pixel_ring = Adafruit_NeoPixel(16+(PLAYERS_PER_TEAM*NUMBER_OF_TEAMS*2), NEOPIXEL_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel pixel_ring = Adafruit_NeoPixel( CLOCK_RING_SIZE +(PLAYERS_PER_TEAM*NUMBER_OF_TEAMS*2), NEOPIXEL_PIN, NEO_GRB + NEO_KHZ800);
+
 
 
 #define TEAM1PIN 0
@@ -54,6 +57,7 @@ Adafruit_NeoPixel pixel_ring = Adafruit_NeoPixel(16+(PLAYERS_PER_TEAM*NUMBER_OF_
 ClickEncoder *encoder;
 int16_t rotary_last, rotary_current;
 ClickEncoder::Button rotary_button;
+
 
 
 #define GO_GO 0
@@ -100,9 +104,9 @@ struct buttonmap{
 	{1020, BUT1 | BUT2 | BUT3 | BUT4}
 };
 
-
-
-
+// struct has too much overhead for this, so simple globals:
+byte clock_display_state_sec = 0;
+byte clock_display_state_range = 0;
 
 // Buttons, Teams, and Players:
 char playerNames[(NUMBER_OF_TEAMS * PLAYERS_PER_TEAM)][10]; // create space for player names
@@ -230,7 +234,7 @@ void setup() {
 	digitalWrite(A1, LOW); // analog - do not use internal resistor - alreay in the circuit
 	analogRead (TEAM1PIN) ; // do a dummy read to get the pin in the right state?
 
-  InitRotary(10, 9, 8);
+  InitRotary(11, 9, 8);
 	InitGameAnimations();
 	next_tick = millis() + TICKDURATION;
 	InitAnalogButtons();
@@ -257,7 +261,7 @@ void setup() {
 	LoadGameFrame();  
 	randomSeed(analogRead(2));
 	
-	Serial.println("STRARTUP");
+	Serial.println("STARTUP");
 }
 
 
@@ -280,6 +284,8 @@ void loop() {
   switch (current_mode) {
 
     case CONSOLE_MENU:
+    
+    /*
     if (ModeChanged()){
       Serial.println("Console:");
       DisplayModeTitle("Menu");
@@ -312,6 +318,8 @@ void loop() {
       if (rotary_button == ClickEncoder::Clicked){lcd.print("CLIK");}
       if (rotary_button == ClickEncoder::DoubleClicked){lcd.print("DBL");}
 }
+*/
+current_mode = SELECT_GAME_MODE;
     
     break;
     
@@ -330,7 +338,13 @@ void loop() {
     
     
     case SELECT_GAME_MODE:
-    
+     lcd.setBacklight(BACKLIGHT_TEAL);
+      DisplayModeTitle("Select Game Type");
+      
+       if(PollConsoleButtons(1)){
+        current_mode = GAME_IN_PROGRESS;
+       
+       }
     break;
 
 
@@ -353,7 +367,7 @@ void loop() {
           GoToFrame(framecode[GO_PLAYER]);
         // }
         }
-        Time2Neo(GetCountdownSeconds());
+        Time2Neo(GetCountdownSeconds(),  GameTimer.duration);
       }
       // transient frames:
       if (framecode[GO_TYPE] == START_CLOCK){
@@ -386,6 +400,7 @@ void loop() {
 
       if(framecode[GO_STOP]>0){
         if(PollConsoleButtons(2)){
+          ClearNeoClock();
           GoToFrame(framecode[GO_STOP]);
         }
       } 
@@ -503,6 +518,7 @@ void LoadGameFrame(){
       lcd.setBacklight(BACKLIGHT_YELLOW);
       DisplayModeTitle(FetchFrameName(current_frame));
       PlayGameAnimation(framecode[GO_TYPE]);
+      ClearNeoClock();
       break;
    case ANIM_WIN:
       lcd.setBacklight(BACKLIGHT_YELLOW);
