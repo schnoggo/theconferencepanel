@@ -194,22 +194,8 @@ typedef struct {
 } timer;
 timer GameTimer; // global game time
 
+byte i; // generic, global index to avoid memory thrashing
 
-
-	byte i; // generic, global index to avoid memory thrashing
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	
 void setup() {
 // ------------
@@ -237,7 +223,7 @@ void setup() {
 	digitalWrite(A1, LOW); // analog - do not use internal resistor - alreay in the circuit
 	analogRead (TEAM1PIN) ; // do a dummy read to get the pin in the right state?
 
-  InitRotary(11, 9, 8);
+ // InitRotary(11, 9, 8); // only activate for certain modes
 	InitGameAnimations();
 	next_tick = millis() + TICKDURATION;
 	InitAnalogButtons();
@@ -272,22 +258,11 @@ void setup() {
 
 
 
-
-
-
-
-
-
 void loop() {
-
-
-
-  unsigned long now = millis();
-  //DQPlayer(3, 1);
-  byte last_console_button = 0;
-
-
-    if (ModeChanged()){
+  
+  unsigned long now = millis(); // "now" get set at beginning of every loop
+  byte need2init_mode = ModeChanged();
+    if (need2init_mode){
          if (SERIAL_DEBUG){
       Serial.print("Mode change:");
        Serial.println(current_mode);
@@ -297,24 +272,20 @@ void loop() {
   switch (current_mode) {
 
     case CONSOLE_MENU:
+     DisplayModeTitle("Main Menu");
     
     /*
-   
-
     rotary_current += encoder->getValue();
   
     if (rotary_current != rotary_last) {
       rotary_last = rotary_current;
       Serial.print("Encoder Value: ");
       Serial.println(rotary_current);
-
       lcd.setCursor(0, 1);
       lcd.print("        ");
       lcd.setCursor(0, 1);
-     
 
     }
-  
   
     rotary_button = encoder->getButton();
    
@@ -329,38 +300,33 @@ void loop() {
       if (rotary_button == ClickEncoder::DoubleClicked){lcd.print("DBL");}
 }
 */
-current_mode = SELECT_GAME_MODE;
+  current_mode = SELECT_GAME_MODE;
     
     break;
-    
-    
-    
-    
-    
-    
-    
-    
-    
+   
     
     case CALIBRATING_RESISTORS:
+     DisplayModeTitle("Calibrate");
       PollUserButtons();
     break;
     
     
     case SELECT_GAME_MODE:
-     lcd.setBacklight(BACKLIGHT_TEAL);
-      DisplayModeTitle("Select Game Type");
-      
+      if (need2init_mode){
+        lcd.setBacklight(BACKLIGHT_TEAL);
+        DisplayModeTitle("Select Game Type");
+      }
+
        if(PollConsoleButtons(1)){
         current_mode = GAME_IN_PROGRESS;
-        ClearConsoleButtons(); // we've responded to the button push. Get ready for next button
+      //  ClearConsoleButtons(); // we've responded to the button push. Get ready for next button
        
        }
     break;
 
 
     default: 
-
+       DisplayModeTitle("Default(n prog?)");
       if(framecode[GO_PLAYER]>0){
         buzzing_teamplayer=PollUserButtons();
         buzzing_player=(byte) (buzzing_teamplayer & 0x0F);
@@ -372,7 +338,8 @@ current_mode = SELECT_GAME_MODE;
           ClearUserButtons();
 
           // Light up the buzzing player:
-          LightOnePlayer(buzzing_player,buzzing_team,pixel_ring.Color(50, 200, 200));
+         // LightOnePlayer(buzzing_player,buzzing_team,pixel_ring.Color(50, 200, 200));
+          LightOnePlayer(buzzing_player,buzzing_team,pixel_ring.Color(255, 255, 255));
           //  if (last_player_pressed != buzzing_player){
           //   last_player_pressed = buzzing_player;
           GoToFrame(framecode[GO_PLAYER]);
@@ -461,24 +428,7 @@ byte PollConsoleButtons(byte lookingfor) {
   Eventually, rewrite this to work exactly like user buttons, but with the test for the input
   */
   byte retVal;
-  // last value:
-  // buttonLines[0].lastbutton
-  // this will eventually use the resistor ladder model.
-  // right now, we're just using digital pins
- // Serial.print("looking for:");
- // Serial.print(lookingfor);
- 
- /*
- typedef struct {
-  char lastbutton; // which button was "down" during last poll (signed) -1 = no button
-  byte state;     // 0:still open,  1:from open to closed 2:from closed to open 3:still closed 4: unkown
-  unsigned int lastvalue; // last actual value from the pin
-  uint8_t repeat_count; // number of times this value has been read
-  unsigned long lastclosed; // time of last read that was closed
-  byte pin; // which line are we reading?
-  byte down_buttons; // bitmap of buttons currently down and ready to return
 
-*/
 
   if (SERIAL_DEBUG){
   /*
@@ -497,8 +447,6 @@ byte PollConsoleButtons(byte lookingfor) {
       if (digitalRead(CONSOLE_STOP_PIN) == LOW){desired_button_down=1;}
     break;
   }
-
-
 
     if (desired_button_down){ // button pressed
       if (3 != buttonLines[0].state){
@@ -656,6 +604,7 @@ byte ModeChanged(){
     }
 
     last_mode = current_mode;
+    retVal = true;
        
   }    
   return retVal;

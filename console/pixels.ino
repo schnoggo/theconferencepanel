@@ -112,7 +112,7 @@ void LightPlayer(uint8_t player, uint8_t team, uint32_t color, uint8_t dontshow)
   color
   dontshow
   
-  There are wto pixels per player - front and back
+  There are 2 pixels per player - front and back
 
 */
 
@@ -132,7 +132,14 @@ void LightOnePlayer(uint8_t player, uint8_t team, uint32_t color){
 /* Light up just one player's lights
 
 */
-
+  if (SERIAL_DEBUG){
+    Serial.print("LightOnePlayer(player:");
+    Serial.print(player);
+    Serial.print(" team:");
+    Serial.print(team);
+    Serial.println(")");
+  }
+  
   byte i;
   byte j;
   for(i=1; i<=PLAYERS_PER_TEAM; i++) {
