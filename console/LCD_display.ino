@@ -35,6 +35,12 @@ void DisplayModeTitle(char* title){
 
 }
 
+void ClearSubMode(){
+   lcd.setCursor(0, 1);
+  lcd.print("               ");
+}
+
+
 
 void DisplaySubMode(char* title){
   /* Writes a centered line of text out to tthe LCD display.

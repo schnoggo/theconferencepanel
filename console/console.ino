@@ -316,7 +316,7 @@ void loop() {
     
     case CALIBRATING_RESISTORS:
      DisplayModeTitle("Calibrate");
-      PollUserButtons();
+      PollUserButtons(false);
     break;
     
     
@@ -347,15 +347,24 @@ void loop() {
 
 
     default: 
-       DisplayModeTitle("Default(n prog?)");
+     //  DisplayModeTitle("Default(n prog?)");
       if(framecode[GO_PLAYER]>0){
-        buzzing_teamplayer=PollUserButtons();
+        buzzing_teamplayer=PollUserButtons(false);
         buzzing_player=(byte) (buzzing_teamplayer & 0x0F);
         buzzing_team=(byte)((buzzing_teamplayer & 0xF0) >> 4);
-        lcd.setCursor(15, 1); // show player in lower-right
+        //lcd.setCursor(15, 1); // show player in lower-right
+        lcd.setCursor(0, 1);
+                lcd.setCursor(0, 1);
+
+        lcd.print("player:");
+                lcd.setCursor(8, 1);
+
         lcd.print(buzzing_player);                                                                               
+                lcd.setCursor(11, 1);
+
+        lcd.print(buzzing_team);                                                                               
         if (buzzing_player>0){
-          // depending on game type, we made need to lock out this player, the player team, or reset everything
+          // depending on game type, we may need to lock out this player, the player team, or reset everything
           ClearUserButtons();
 
           // Light up the buzzing player:
@@ -370,7 +379,10 @@ void loop() {
       }
       // transient frames:
       if (framecode[GO_TYPE] == START_CLOCK){
+      //ResetPlayerList
+        LockoutEarlyBuzzers();
         StartCountdown(10); // ten seconds on the clock
+        
         GoToFrame(framecode[GO_GO]);
       }
 
@@ -438,120 +450,6 @@ void ClearConsoleButtons() {
 
 
 
-byte PollConsoleButtons(byte lookingfor) {
-  /*
-  Input:
-  1 - GO button
-  2 - STOP button
-  
-  Returns:
-  1/true - yup this button is pressed
-  0/false - this button is not pressed
-  
-  Eventually, rewrite this to work exactly like user buttons, but with the test for the input
-  */
-  byte retVal;
-
-
-
-        lcd.setCursor(8, 1);
-        switch(lookingfor){
-        case 1:
-            lcd.print("1");
-          break;
- 
-        case 2:
-            lcd.print("2");
-          break;
-          
-        default:
-            lcd.print("e");
-    }
-          lcd.setCursor(9, 1);
-
-  
-  retVal=0; // false unless we find a debounced and non-repeating button
-  byte desired_button_down = 0;
-  byte any_button_down = 0;
-    switch (lookingfor) {
-    case 1:
-      if (digitalRead(CONSOLE_GO_PIN) == LOW){
-      desired_button_down=1;
-      lcd.print("1");
-      } else {
-      //lcd.print("0");
-      }
-      
-    break;
-  
-    case 2:
-      if (digitalRead(CONSOLE_STOP_PIN) == LOW){
-      desired_button_down=1;
-       lcd.print("1");
-      } else {
-     // lcd.print("0");
-      }
-    break;
-  }
-
-    if (desired_button_down){ // button pressed
-    
-    lcd.setCursor(10, 1);
-    lcd.print(buttonLines[0].state);
-    lcd.setCursor(11, 1);
-    lcd.print(buttonLines[0].lastvalue);
-        
-      if (buttonLines[0].state != 3){
-            //    Serial.println(" not 3");
-
-        if (lookingfor != buttonLines[0].lastvalue) { // have we seen this before?
-          // lookingfor not the last pressed button - set up the debounce counter
-          buttonLines[0].lastvalue = lookingfor;
-          buttonLines[0].repeat_count = 0;
-         // buttonLines[0].down_buttons = 0;
-         // buttonLines[0].state = 0; // button up
-        } else {
-          // the last button tested is the  button we are looking for. See if it's stable
-        //  Serial.println(" last value, before debounce test");
-
-          if (buttonLines[0].repeat_count < 254) {buttonLines[0].repeat_count++;} // count it
-          if (buttonLines[0].repeat_count < 2) { // not settled yet
-         //   Serial.print(" count ");
-          //  Serial.println(buttonLines[0].repeat_count);
-
-
-            buttonLines[0].down_buttons = 0;
-            buttonLines[0].state = 0; // button is still up
-          } else {
-            // button has been down long enough to count it
-             retVal = 1;
-            buttonLines[0].state = 3; // button down
-              if (SERIAL_DEBUG){
-                Serial.print("button ");
-                Serial.print(lookingfor);
-                Serial.println(" pressed");
-                }
-            } // debounce timer
-      } // last butto is the button we are looking for
-    } else {
-    // was already down, so don' return a new value
-    if (SERIAL_DEBUG){
-     // Serial.println("repeating");
-      }
-    } // buttonLines[0].state = 3
-
-  } else { // if no button down, don't return value
-if (any_button_down == 0){
-buttonLines[0].down_buttons = 0;
-            buttonLines[0].state = 0; // button is still up
-
-}
-  }
-  
-
-  return retVal;
-}
-
 
 
 void LoadGameFrame(){
@@ -592,6 +490,7 @@ void LoadGameFrame(){
    case START_CLOCK:
        lcd.setBacklight(BACKLIGHT_RED);
       DisplayModeTitle(FetchFrameName(current_frame));
+      ClearSubMode();
  
    break;
  

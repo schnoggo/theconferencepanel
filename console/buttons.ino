@@ -42,7 +42,16 @@ void ClearUserButtons() {
 
 }
 
-byte PollUserButtons() {
+void LockoutEarlyBuzzers() {
+ // Checks to see if someone is already byzzing and locks them out.
+       Serial.print("LockoutEarlyBuzzers()");
+
+  byte junk = PollUserButtons(true);
+// DQPlayer() player, team
+
+}
+
+byte PollUserButtons(byte lockout) {
 /* 
 Inputs: none (just globals)
 Hardware: Uses 3 analog pins to determine which button is being pushed
@@ -155,11 +164,15 @@ lcd.print(outnum);
 for (i=1; i<=NUMBER_OF_TEAMS; i++) { 
     for (j=1; j<=PLAYERS_PER_TEAM; j++) {
       if (buttonLines[i].down_buttons & (1<<(j-1))) { // button was down
-        if (PlayerEligible(j,i)){
-          possible_winners[winner_counter]=(i*16) + j;
-          winner_counter++;
-        } 
-      }
+       if (lockout){
+         DQPlayer(j,i);
+        } else {
+          if (PlayerEligible(j,i)){
+            possible_winners[winner_counter]=(i*16) + j;
+            winner_counter++;
+          }
+         }// lockout
+      } // button down
     }
   }
 // now is possible_winners array of possible return values
@@ -171,3 +184,96 @@ if (winner_counter > 0){
 }      
   return retPlayer;
 }
+
+
+
+
+
+byte PollConsoleButtons(byte lookingfor) {
+  /*
+  Input:
+  1 - GO button
+  2 - STOP button
+  
+  Returns:
+  1/true - yup this button is pressed
+  0/false - this button is not pressed
+  
+  Eventually, rewrite this to work exactly like user buttons, but with the test for the input
+  */
+  byte retVal;
+
+
+
+        
+        
+  
+  retVal=0; // false unless we find a debounced and non-repeating button
+  byte desired_button_down = 0;
+  byte any_button_down = 0;
+    switch (lookingfor) {
+    case 1:
+      if (digitalRead(CONSOLE_GO_PIN) == LOW){
+      desired_button_down=1;
+      }
+    break;
+  
+    case 2:
+      if (digitalRead(CONSOLE_STOP_PIN) == LOW){
+      desired_button_down=1;
+      }
+    break;
+  }
+
+    if (desired_button_down){ // button pressed   
+      if (buttonLines[0].state != 3){
+            //    Serial.println(" not 3");
+
+        if (lookingfor != buttonLines[0].lastvalue) { // have we seen this before?
+          // lookingfor not the last pressed button - set up the debounce counter
+          buttonLines[0].lastvalue = lookingfor;
+          buttonLines[0].repeat_count = 0;
+         // buttonLines[0].down_buttons = 0;
+         // buttonLines[0].state = 0; // button up
+        } else {
+          // the last button tested is the  button we are looking for. See if it's stable
+        //  Serial.println(" last value, before debounce test");
+
+          if (buttonLines[0].repeat_count < 254) {buttonLines[0].repeat_count++;} // count it
+          if (buttonLines[0].repeat_count < 2) { // not settled yet
+         //   Serial.print(" count ");
+          //  Serial.println(buttonLines[0].repeat_count);
+
+
+            buttonLines[0].down_buttons = 0;
+            buttonLines[0].state = 0; // button is still up
+          } else {
+            // button has been down long enough to count it
+             retVal = 1;
+            buttonLines[0].state = 3; // button down
+              if (SERIAL_DEBUG){
+                Serial.print("button ");
+                Serial.print(lookingfor);
+                Serial.println(" pressed");
+                }
+            } // debounce timer
+      } // last butto is the button we are looking for
+    } else {
+    // was already down, so don' return a new value
+    if (SERIAL_DEBUG){
+     // Serial.println("repeating");
+      }
+    } // buttonLines[0].state = 3
+
+  } else { // if no button down, don't return value
+if (any_button_down == 0){
+buttonLines[0].down_buttons = 0;
+            buttonLines[0].state = 0; // button is still up
+
+}
+  }
+  
+
+  return retVal;
+}
+
