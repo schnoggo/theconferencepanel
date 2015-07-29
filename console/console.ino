@@ -107,6 +107,8 @@ struct buttonmap{
 	{1020, BUT1 | BUT2 | BUT3 | BUT4}
 };
 
+
+
 // struct has too much overhead for this, so simple globals:
 byte clock_display_state_sec = 0;
 byte clock_display_state_range = 0;
@@ -127,13 +129,15 @@ typedef struct {
 
 } ButtonLine;
 
+
+
 byte last_player_pressed = 0;
 byte buzzing_teamplayer = 0;
 byte buzzing_player = 0;
 byte buzzing_team = 0;
 ButtonLine buttonLines[NUMBER_OF_TEAMS+1]; // 0th "team" is console
 
-// Game Modes
+// Game Types
 #define GAME_TEAM_STEAL 0
 #define GAME_LIGHTNING 1
 #define GAME_ALL_PLAY 2
@@ -168,6 +172,7 @@ unsigned long calibrate_tick = 0;
 
 byte current_mode = 0;
 byte last_mode = 254;
+byte current_game_type = 0;
 byte current_frame = 0;
 byte framecode[5]; // global array of this frame's instuctions
 
@@ -193,6 +198,10 @@ typedef struct {
  byte duration; //duration in seconds (needed for clock display)
 } timer;
 timer GameTimer; // global game time
+
+
+
+
 
 byte i; // generic, global index to avoid memory thrashing
 
@@ -262,12 +271,12 @@ void loop() {
   
   unsigned long now = millis(); // "now" get set at beginning of every loop
   byte need2init_mode = ModeChanged();
-    if (need2init_mode){
-         if (SERIAL_DEBUG){
+  if (need2init_mode){
+    if (SERIAL_DEBUG){
       Serial.print("Mode change:");
-       Serial.println(current_mode);
-       }
-    } 
+      Serial.println(current_mode);
+    }
+  } 
     
   switch (current_mode) {
 
@@ -317,11 +326,23 @@ void loop() {
         DisplayModeTitle("Select Game Type");
       }
 
+  // just have 2 modes right now: 
+  // green button: all buzz with steal, 
+  // red button: all buz, not steal
        if(PollConsoleButtons(1)){
         current_mode = GAME_IN_PROGRESS;
+        current_game_type = GAME_TEAM_STEAL;
+
       //  ClearConsoleButtons(); // we've responded to the button push. Get ready for next button
+       } else {
+          if(PollConsoleButtons(2)){ //red button   
+          
+          current_mode = GAME_IN_PROGRESS;
+          current_game_type = GAME_LIGHTNING;
+         }
        
        }
+       
     break;
 
 
@@ -411,6 +432,8 @@ void ClearConsoleButtons() {
     buttonLines[0].repeat_count = 0;
     buttonLines[0].down_buttons = 0;
 */
+     buttonLines[0].lastvalue = 0;
+    buttonLines[0].state = 0; // button up
 }
 
 
@@ -430,63 +453,99 @@ byte PollConsoleButtons(byte lookingfor) {
   byte retVal;
 
 
-  if (SERIAL_DEBUG){
-  /*
-    Serial.print("PollConsoleButtons:");
-    Serial.println(lookingfor);
-    */
-  }
+
+        lcd.setCursor(8, 1);
+        switch(lookingfor){
+        case 1:
+            lcd.print("1");
+          break;
+ 
+        case 2:
+            lcd.print("2");
+          break;
+          
+        default:
+            lcd.print("e");
+    }
+          lcd.setCursor(9, 1);
+
+  
   retVal=0; // false unless we find a debounced and non-repeating button
   byte desired_button_down = 0;
+  byte any_button_down = 0;
     switch (lookingfor) {
     case 1:
-      if (digitalRead(CONSOLE_GO_PIN) == LOW){ desired_button_down=1;}
+      if (digitalRead(CONSOLE_GO_PIN) == LOW){
+      desired_button_down=1;
+      lcd.print("1");
+      } else {
+      //lcd.print("0");
+      }
+      
     break;
   
     case 2:
-      if (digitalRead(CONSOLE_STOP_PIN) == LOW){desired_button_down=1;}
+      if (digitalRead(CONSOLE_STOP_PIN) == LOW){
+      desired_button_down=1;
+       lcd.print("1");
+      } else {
+     // lcd.print("0");
+      }
     break;
   }
 
     if (desired_button_down){ // button pressed
-      if (3 != buttonLines[0].state){
-        if (lookingfor == buttonLines[0].lastvalue) { // have we seen this before?
+    
+    lcd.setCursor(10, 1);
+    lcd.print(buttonLines[0].state);
+    lcd.setCursor(11, 1);
+    lcd.print(buttonLines[0].lastvalue);
+        
+      if (buttonLines[0].state != 3){
+            //    Serial.println(" not 3");
+
+        if (lookingfor != buttonLines[0].lastvalue) { // have we seen this before?
+          // lookingfor not the last pressed button - set up the debounce counter
+          buttonLines[0].lastvalue = lookingfor;
+          buttonLines[0].repeat_count = 0;
+         // buttonLines[0].down_buttons = 0;
+         // buttonLines[0].state = 0; // button up
+        } else {
+          // the last button tested is the  button we are looking for. See if it's stable
+        //  Serial.println(" last value, before debounce test");
+
           if (buttonLines[0].repeat_count < 254) {buttonLines[0].repeat_count++;} // count it
-          if (buttonLines[0].repeat_count > 10) { // stable value - maybe count it as a button press (was DEBOUNCE_REPEAT)
-              retVal = 1;
-              buttonLines[0].down_buttons = lookingfor;
-              buttonLines[0].state = 3; // button down
+          if (buttonLines[0].repeat_count < 2) { // not settled yet
+         //   Serial.print(" count ");
+          //  Serial.println(buttonLines[0].repeat_count);
+
+
+            buttonLines[0].down_buttons = 0;
+            buttonLines[0].state = 0; // button is still up
+          } else {
+            // button has been down long enough to count it
+             retVal = 1;
+            buttonLines[0].state = 3; // button down
               if (SERIAL_DEBUG){
                 Serial.print("button ");
                 Serial.print(lookingfor);
                 Serial.println(" pressed");
-      }
-              
-          } else {
-            // still bouncing
-            buttonLines[0].down_buttons = 0;
-            buttonLines[0].state = 0; // button up
-          }
-
-      } else {
-        // lookingfor not the last pressed button - set up the debounce counter
-        buttonLines[0].lastvalue = lookingfor;
-        buttonLines[0].repeat_count = 0;
-        buttonLines[0].down_buttons = 0;
-        buttonLines[0].state = 0; // button up
-      }
+                }
+            } // debounce timer
+      } // last butto is the button we are looking for
     } else {
-    // was already down
+    // was already down, so don' return a new value
     if (SERIAL_DEBUG){
-      Serial.println("repeating");
+     // Serial.println("repeating");
       }
-    }
+    } // buttonLines[0].state = 3
 
   } else { // if no button down, don't return value
-     buttonLines[0].lastvalue = 0;
-    buttonLines[0].state = 0; // button up
-    buttonLines[0].down_buttons = 0;
-    buttonLines[0].repeat_count = 0;
+if (any_button_down == 0){
+buttonLines[0].down_buttons = 0;
+            buttonLines[0].state = 0; // button is still up
+
+}
   }
   
 
@@ -509,7 +568,7 @@ void LoadGameFrame(){
 #define PLAYER 2
 */
   
-  FetchGameInstruction(0,current_frame,&framecode[0]); // pass pointer to first elemnt of our instruction array
+  FetchGameInstruction(current_game_type, current_frame, &framecode[0]); // pass pointer to first elemnt of our instruction array
  /*
   Serial.print("Frame 0: ");
    Serial.print(framecode[0]);
