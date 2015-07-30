@@ -305,7 +305,7 @@ void loop() {
       if (rotary_button == ClickEncoder::DoubleClicked){lcd.print("DBL");}
 }
 */
-  current_console_mode = SELECT_GAME_MODE;
+      current_console_mode = SELECT_GAME_MODE;
     
     break;
    
@@ -322,22 +322,19 @@ void loop() {
         DisplayModeTitle("Select Game Type");
       }
 
-  // just have 2 modes right now: 
-  // green button: all buzz with steal, 
-  // red button: all buz, not steal
-       if(PollConsoleButtons(1)){
+      // just have 2 modes right now: 
+      // green button: all buzz with steal, 
+      // red button: all buz, not steal
+      if(PollConsoleButtons(1)){
         current_console_mode = GAME_IN_PROGRESS;
         current_game_type = GAME_TEAM_STEAL;
+      }
+      if(PollConsoleButtons(2)){ //red button             
+        current_console_mode = GAME_IN_PROGRESS;
+        current_game_type = GAME_LIGHTNING;
+        current_game_type = GAME_TEAM_STEAL; // debug
 
-      // ClearConsoleButtons(); // we've responded to the button push. Get ready for next button
-       } else {
-          if(PollConsoleButtons(2)){ //red button             
-            current_console_mode = GAME_IN_PROGRESS;
-            current_game_type = GAME_LIGHTNING;
-         }
-       
-       }
-       
+      }     
     break;
 
 
@@ -345,97 +342,79 @@ void loop() {
      //  DisplayModeTitle("Default(n prog?)");
       switch (framecode[GO_TYPE]) {
       
-     
-     
-     // transient frames:
-      case RESET:
-      ResetPlayerList();
-      ClearNeoClock(); //reset the clock
-      ClearSubMode(); // erase currently displaying player/team   break;
-  break; 
+       // transient frames:
+        case RESET:
+          ResetPlayerList();
+          ClearNeoClock(); //reset the clock
+          ClearSubMode(); // erase currently displaying player/team   break;
+        break; 
   
-      case START_CLOCK:
-      
-      //ResetPlayerList
-        StartCountdown(10); // ten seconds on the clock 
-        LockoutEarlyBuzzers();
-        GoToFrame(framecode[GO_GO]);
-
-     break;
-     default: // regular frames:
-
-      if(framecode[GO_PLAYER]>0){
-        buzzing_teamplayer=PollUserButtons(false);
-        buzzing_player=(byte) (buzzing_teamplayer & 0x0F);
-        buzzing_team=(byte)((buzzing_teamplayer & 0xF0) >> 4);
-        //lcd.setCursor(15, 1); // show player in lower-right
+        case START_CLOCK:      
+        //ResetPlayerList
+          StartCountdown(10); // ten seconds on the clock 
+          LockoutEarlyBuzzers();
+          GoToFrame(framecode[GO_GO]);
+       break;
+       
+      default: // regular frames:
+        // PLAYER BUZZ:
+        if(framecode[GO_PLAYER]>0){ // there is a frame for player buzz-in
+          buzzing_teamplayer=PollUserButtons(false);
+          buzzing_player=(byte) (buzzing_teamplayer & 0x0F);
+          buzzing_team=(byte)((buzzing_teamplayer & 0xF0) >> 4);
                                                                               
-        if (buzzing_player>0){
-          // depending on game type, we may need to lock out this player, the player team, or reset everything
-          //ClearUserButtons();
-        lcd.setCursor(0, 1);
-        lcd.print("player");
-        lcd.setCursor(10, 1);
-        lcd.print("team");
-        lcd.setCursor(7, 1);
-        lcd.print(buzzing_player);                                                                               
-        lcd.setCursor(15, 1);
-        lcd.print(buzzing_team); 
+          if (buzzing_player>0){
+            // depending on game type, we may need to lock out this player, the player team, or reset everything
+            //ClearUserButtons();
+            lcd.setCursor(0, 1);
+            lcd.print("player");
+            lcd.setCursor(10, 1);
+            lcd.print("team");
+            lcd.setCursor(7, 1);
+            lcd.print(buzzing_player);                                                                               
+            lcd.setCursor(15, 1);
+            lcd.print(buzzing_team); 
 
-          // Light up the buzzing player:
-         // LightOnePlayer(buzzing_player,buzzing_team,pixel_ring.Color(50, 200, 200));
-          LightOnePlayer(buzzing_player,buzzing_team,pixel_ring.Color(255, 255, 255));
-          //  if (last_player_pressed != buzzing_player){
-          //   last_player_pressed = buzzing_player;
-          GoToFrame(framecode[GO_PLAYER]);
-        // }
+            // Light up the buzzing player:
+            LightOnePlayer(buzzing_player,buzzing_team,pixel_ring.Color(255, 255, 255));
+            //  if (last_player_pressed != buzzing_player){
+            GoToFrame(framecode[GO_PLAYER]);
         }
-        Time2Neo(GetCountdownSeconds(),  GameTimer.duration);
-      }
-
+        Time2Neo(GetCountdownSeconds(),  GameTimer.duration); // update the clock since we're waiting on player
+      } // looking for player buzz-in
+      
+      // CONSOLE GO BUTTON
       if(framecode[GO_GO]>0){
         if(PollConsoleButtons(1)){
-          // ClearConsoleButtons(); // we've responded to the button push. Get ready for next button
-          switch(framecode[GO_TYPE]){
-            case PLAYER:
-            ClearSubMode();
-              break;
-              
-          } 
           switch(framecode[GO_GO]){
-            case 200:
+          // some GO frames are virtual. So case them out
+            case 200: // pause
               TogglePause();
               break;
             default:
               GoToFrame(framecode[GO_GO]);
           }
-        } // PollConsoleButtons (check for pause)
+        } // PollConsoleButtons
       }
 
-
+      // CONSOLE STOP BUTTON
       if(framecode[GO_STOP]>0){
         if(PollConsoleButtons(2)){
-         // ClearConsoleButtons(); // we've responded to the button push. Get ready for next button
-          ClearNeoClock();
+          // ClearNeoClock();
           GoToFrame(framecode[GO_STOP]);
         }
       } 
 
-
+      // CONSOLE TIMER event
       if(framecode[GO_TIMER]>0){
         if(CountdownExpired()>0){
           GoToFrame(framecode[GO_TIMER]);
         }
       }
-
-}
-
-      //
-      ServiceGameAnimation();
-
-    
-  } // the giant switch statement
-  
+      
+    } // switch GO_TYPE
+  } // the giant switch statement (current_console_mode)
+  ServiceGameAnimation();
 
 } // The Loop
 
