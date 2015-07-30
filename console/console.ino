@@ -353,19 +353,18 @@ void loop() {
         buzzing_player=(byte) (buzzing_teamplayer & 0x0F);
         buzzing_team=(byte)((buzzing_teamplayer & 0xF0) >> 4);
         //lcd.setCursor(15, 1); // show player in lower-right
-        lcd.setCursor(0, 1);
-                lcd.setCursor(0, 1);
-
-        lcd.print("player:");
-                lcd.setCursor(8, 1);
-
-        lcd.print(buzzing_player);                                                                               
-                lcd.setCursor(11, 1);
-
-        lcd.print(buzzing_team);                                                                               
+                                                                              
         if (buzzing_player>0){
           // depending on game type, we may need to lock out this player, the player team, or reset everything
           ClearUserButtons();
+        lcd.setCursor(0, 1);
+        lcd.print("player");
+        lcd.setCursor(9, 1);
+        lcd.print("team");
+        lcd.setCursor(7, 1);
+        lcd.print(buzzing_player);                                                                               
+        lcd.setCursor(14, 1);
+        lcd.print(buzzing_team); 
 
           // Light up the buzzing player:
          // LightOnePlayer(buzzing_player,buzzing_team,pixel_ring.Color(50, 200, 200));
