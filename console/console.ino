@@ -244,7 +244,7 @@ void setup() {
   LightPlayer(1,1,pixel_ring.Color(1, 0, 100),0);
   LightPlayer(2,1,pixel_ring.Color(30, 100, 0),0);
   LightPlayer(3,1,pixel_ring.Color(255, 0, 0),0);
-    LightPlayer(4,1,pixel_ring.Color(0, 255, 255),0);
+    LightPlayer(4,1,pixel_ring.Color(0, 255, 2g5),0);
 
 
  LightPlayer(1,1,pixel_ring.Color(0, 0, 20),0);
@@ -387,8 +387,6 @@ void loop() {
 
       }
 
-
-
       if(framecode[GO_GO]>0){
         if(PollConsoleButtons(1)){
           // ClearConsoleButtons(); // we've responded to the button push. Get ready for next button
@@ -401,6 +399,7 @@ void loop() {
             case PLAYER:
             ClearSubMode();
               break;
+              
           } 
           switch(framecode[GO_GO]){
             case 200:
@@ -409,7 +408,7 @@ void loop() {
             default:
               GoToFrame(framecode[GO_GO]);
           }
-        }
+        } // PollConsoleButtons (check for pause)
       }
 
 
@@ -468,7 +467,7 @@ void LoadGameFrame(){
 #define PAUSE 4
 #define PLAYER 2
 */
-  last_game_frame = current_frame;
+  //last_game_frame = current_frame;
   FetchGameInstruction(current_game_type, current_frame, &framecode[0]); // pass pointer to first elemnt of our instruction array
  /*
   Serial.print("Frame 0: ");
@@ -481,16 +480,19 @@ void LoadGameFrame(){
  */
   switch (framecode[GO_TYPE]) {
    case HOST:
+   // read q, judge, points
     lcd.setBacklight(BACKLIGHT_RED);
     DisplayModeTitle(FetchFrameName(current_frame));
    break;
  
    case PLAYER:
+   // wait for answer, steal
       lcd.setBacklight(BACKLIGHT_GREEN);
       DisplayModeTitle(FetchFrameName(current_frame));
    break;
  
    case START_CLOCK:
+   // start clock
        lcd.setBacklight(BACKLIGHT_RED);
       DisplayModeTitle(FetchFrameName(current_frame));
       ClearSubMode();
@@ -504,6 +506,7 @@ void LoadGameFrame(){
    case ANIM_FAIL:
       lcd.setBacklight(BACKLIGHT_YELLOW);
       DisplayModeTitle(FetchFrameName(current_frame));
+      DQTeam(buzzing_team); // last buzzing team is ineliguble
       PlayGameAnimation(framecode[GO_TYPE]);
       break;
    case ANIM_TIME:

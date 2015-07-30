@@ -46,8 +46,7 @@ void LockoutEarlyBuzzers() {
  // Checks to see if someone is already byzzing and locks them out.
        Serial.print("LockoutEarlyBuzzers()");
 
-  byte junk = PollUserButtons(true);
-// DQPlayer() player, team
+  byte junk = PollUserButtons(true); // true = lockout any buttons already down
 
 }
 
