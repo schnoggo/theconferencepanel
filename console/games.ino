@@ -21,7 +21,7 @@ const byte mode_instructions[16][5]  = {
 { 0,  0, 02,  0, ANIM_TIME}, //10
 { 0,  0,  8,  0, ANIM_WIN}, //11
 { 15,  2,  0,  0, HOST}, // 12 Steal?
-{ 1,  0,  0,  0, ANIM_MINOR_FAIL}, // 13 Minor Fail animation
+{ 1,  0,  0,  0, ANIM_MINOR_FAIL}, // 13 Minor Fail animation (failed steal)
 { 4,  0,   0,  0,  PAUSE}, // 14
 { 6,  0,   0,  0,  START_CLOCK}, // 15
 

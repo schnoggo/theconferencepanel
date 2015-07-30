@@ -501,6 +501,7 @@ void LoadGameFrame(){
    case SYSTEM:
       lcd.setBacklight(BACKLIGHT_TEAL);
       DisplayModeTitle(FetchFrameName(current_frame));
+      ResetPlayerList();
    break;
  
    case ANIM_FAIL:
@@ -512,6 +513,13 @@ void LoadGameFrame(){
 
       PlayGameAnimation(framecode[GO_TYPE]);
       break;
+   
+   case ANIM_MINOR_FAIL: // failed steal
+       ResetPlayerList();
+       ClearNeoClock(); //reset the clock
+       ClearSubMode(); // erase currently displaying player/tea
+   
+   
    case ANIM_TIME:
       lcd.setBacklight(BACKLIGHT_YELLOW);
       DisplayModeTitle(FetchFrameName(current_frame));
@@ -521,6 +529,7 @@ void LoadGameFrame(){
    case ANIM_WIN:
       lcd.setBacklight(BACKLIGHT_YELLOW);
       DisplayModeTitle(FetchFrameName(current_frame));
+      ResetPlayerList();
       PlayGameAnimation(framecode[GO_TYPE]);
       break;
     
