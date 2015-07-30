@@ -195,102 +195,123 @@ byte PollConsoleButtons(byte lookingfor) {
   Input:
   1 - GO button
   2 - STOP button
+  3 - dial button
+  
+  states
+    0 up
+    1 down
+    3 still down
+    4 unknown
   
   Returns:
   1/true - yup this button is pressed
   0/false - this button is not pressed
-  
-  Eventually, rewrite this to work exactly like user buttons, but with the test for the input
   */
-  byte retVal;
-
-  retVal=0; // false unless we find a debounced and non-repeating button
-  byte desired_button_down = 0;
-  byte any_button_down = 0;
-    switch (lookingfor) {
-    case 1:
-      if (digitalRead(CONSOLE_GO_PIN) == LOW){
-      desired_button_down=1;
-      }
-    break;
   
-    case 2:
-      if (digitalRead(CONSOLE_STOP_PIN) == LOW){
-      desired_button_down=1;
-      }
-    break;
-  }
-
-    if (desired_button_down){ // button pressed   
-      switch (buttonLines[0].state){
-        case 4:
-          // don't do anything until we see an up state
-        
+  
+  
+  byte retVal=0; // false unless we find a debounced and non-repeating button
+  byte currently_down = 0;
+  
+  
+  for (i=0; i<3; i++) {
+    // read pin: different pins are read in different ways
+      switch (i) {
+        case 0:
+          if (digitalRead(CONSOLE_GO_PIN) == LOW){ currently_down = 1;}
         break;
         
-        
+        case 1:
+          if (digitalRead(CONSOLE_STOP_PIN) == LOW){ currently_down = 1;}
+        break;
         
         case 3:
-        
-        
-        
+        // not implemented
         break;
-        
-        
-        default: // not 3 or 4
-            
-        if (lookingfor != buttonLines[0].lastvalue) { // have we seen this before?
-          // lookingfor not the last pressed button - set up the debounce counter
-          buttonLines[0].lastvalue = lookingfor;
-          buttonLines[0].repeat_count = 0;
-         // buttonLines[0].down_buttons = 0;
-         // buttonLines[0].state = 0; // button up
-        } else {
-          // the last button tested is the  button we are looking for. See if it's stable
-        //  Serial.println(" last value, before debounce test");
-
-          if (buttonLines[0].repeat_count < 254) {buttonLines[0].repeat_count++;} // count it
-          if (buttonLines[0].repeat_count < 2) { // not settled yet
-         //   Serial.print(" count ");
-          //  Serial.println(buttonLines[0].repeat_count);
-
-
-            buttonLines[0].down_buttons = 0;
-            buttonLines[0].state = 0; // button is still up
-          } else {
-            // button has been down long enough to count it
-             retVal = 1;
-            buttonLines[0].state = 3; // button down
-              if (SERIAL_DEBUG){
-                Serial.print("button ");
-                Serial.print(lookingfor);
-                Serial.println(" pressed");
-                }
-            } // debounce timer
-      } // last butto is the button we are looking for
       }
-  } else { // desired button not down
-        if (any_button_down == 0){
-          buttonLines[0].down_buttons = 0;
-            buttonLines[0].state = 0; // button is up
-
+    
+      switch (console_buttons[i].state){
+        case 0: //up
+          if (currently_down){
+            // start debounce
+            console_buttons[i].debounce_count = 0;
+            console_buttons[i].state = 2; // bounce wait
+          } else {
+            console_buttons[i].seen_up = 1;
+          }
+        break;
+                
+        case 1: //down
+          if (currently_down){
+            console_buttons[i].seen_up = 0; // need to see it up before we count this again
+            console_buttons[i].state = 3; // still down
+          } else {
+            console_buttons[i].state = 0; // up
+            console_buttons[i].seen_up = 1;
+          }
+        break;
+                
+        case 2: // waiting for bounce to settle
+          if (currently_down){
+            if (console_buttons[i].debounce_count < 100){console_buttons[i].debounce_count++;}
+            if (console_buttons[i].debounce_count > 3){
+              console_buttons[i].state = 1; // down
+            }
+          } else {
+            console_buttons[i].state = 0; // up
+            console_buttons[i].seen_up = 1;
+          }
+        break;
+      
+        case 3: // still down
+          if (currently_down){
+          } else {
+            console_buttons[i].state = 0; // up
+            console_buttons[i].seen_up = 1;
+          }
+        break;
+      
+        case 4: //undefined state
+          if (currently_down){
+            console_buttons[i].seen_up = 0;
+            console_buttons[i].state = 1; // down
+          } else {
+            console_buttons[i].state = 0; // up
+            console_buttons[i].seen_up = 1;          
+          }
+        break;    
+      }
+    }
+    
+    // all inputs read. Check to see if the one we want is ready
+    if (console_buttons[lookingfor-1].state != console_buttons[lookingfor-1].prev_state){
+      if (console_buttons[lookingfor-1].state == 1){
+        if (SERIAL_DEBUG){
+          Serial.print("button ");
+          Serial.println(lookingfor);  
         }
-  }
-  
+        retVal = 1;
+      }
+    }
+    
+    for (i=0; i<3; i++) {
+      console_buttons[i].prev_state = console_buttons[i].state;
+    }
 
+    
+             
+                
   return retVal;
 }
 
 
-void ClearConsoleButtons() {
-/*
-    buttonLines[0].lastbutton = 0;
-    buttonLines[0].state = 4;
-    buttonLines[0].lastvalue = 9999;
-    buttonLines[0].repeat_count = 0;
-    buttonLines[0].down_buttons = 0;
-*/
-    // buttonLines[0].lastvalue = 0;
-    buttonLines[0].state = 4; // unknown
+void InitConsoleButtons() {
+  byte i;
+  for (i=0; i<3; i++) { 
+    console_buttons[i].state = 4; //unknown
+    console_buttons[i].seen_up = 0; //have seen an up state yet
+    console_buttons[i].debounce_count = 0; //clear debounce counter
+    console_buttons[i].prev_state = 99;
+  }
 }
 

@@ -103,7 +103,12 @@ struct buttonmap{
 	{1020, BUT1 | BUT2 | BUT3 | BUT4}
 };
 
-
+struct consolebuttonvals{
+  byte state;
+  byte seen_up;
+  byte debounce_count;
+  byte prev_state;
+  } console_buttons[3];
 
 // struct has too much overhead for this, so simple globals:
 byte clock_display_state_sec = 0;
@@ -172,8 +177,6 @@ byte current_frame = 0;
 byte last_game_frame = 254;
 byte framecode[5]; // global array of this frame's instuctions
 
-byte current_button_list[4]; // do this global to avoid cycles to allocate every test
-
 // animation:
 
 typedef struct {
@@ -232,7 +235,7 @@ void setup() {
 	InitGameAnimations();
 	next_tick = millis() + TICKDURATION;
 	InitAnalogButtons();
-	ClearConsoleButtons();
+	InitConsoleButtons();
 	current_console_mode = CONSOLE_MENU;
 	current_frame = 0;
 	/*
