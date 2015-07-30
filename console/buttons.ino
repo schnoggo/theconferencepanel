@@ -115,7 +115,7 @@ Globals: UserButton{
         if (buttonLines[i].repeat_count > DEBOUNCE_REPEAT) {
           // stable value - maybe count it as a button press
           
-          if (current_mode==CALIBRATING_RESISTORS and (i==2)){
+          if (current_console_mode==CALIBRATING_RESISTORS and (i==2)){
           // display the stable value:
             if ((millis() - calibrate_tick ) > 400) {
               sprintf(outnum, "%03d %04d", buttonLines[i].repeat_count, buttonLines[i].lastvalue);

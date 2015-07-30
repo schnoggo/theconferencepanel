@@ -25,8 +25,6 @@ void DQPlayer(byte player_num, byte team_num){
       Serial.print(player_num);
       Serial.print("of team:");
        Serial.print(team_num);
-
-      Serial.println(current_mode);
     }
     
     lcd.setCursor(13, 0);

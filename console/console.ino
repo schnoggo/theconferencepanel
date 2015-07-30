@@ -170,8 +170,8 @@ ButtonLine buttonLines[NUMBER_OF_TEAMS+1]; // 0th "team" is console
 unsigned long calibrate_tick = 0;
 // set to 1 to set up mode where we can get resistor values
 
-byte current_mode = 0;
-byte last_mode = 254;
+byte current_console_mode = 0;
+byte last_console_mode = 254;
 byte current_game_type = 0;
 byte current_frame = 0;
 byte framecode[5]; // global array of this frame's instuctions
@@ -237,7 +237,7 @@ void setup() {
 	next_tick = millis() + TICKDURATION;
 	InitAnalogButtons();
 	ClearConsoleButtons();
-	current_mode = CONSOLE_MENU;
+	current_console_mode = CONSOLE_MENU;
 	current_frame = 0;
 	/*
   LightPlayer(1,1,pixel_ring.Color(1, 0, 100),0);
@@ -270,15 +270,15 @@ void setup() {
 void loop() {
   
   unsigned long now = millis(); // "now" get set at beginning of every loop
-  byte need2init_mode = ModeChanged();
+  byte need2init_mode = ConsoleModeChanged();
   if (need2init_mode){
     if (SERIAL_DEBUG){
       Serial.print("Mode change:");
-      Serial.println(current_mode);
+      Serial.println(current_console_mode);
     }
   } 
     
-  switch (current_mode) {
+  switch (current_console_mode) {
 
     case CONSOLE_MENU:
      DisplayModeTitle("Main Menu");
@@ -309,7 +309,7 @@ void loop() {
       if (rotary_button == ClickEncoder::DoubleClicked){lcd.print("DBL");}
 }
 */
-  current_mode = SELECT_GAME_MODE;
+  current_console_mode = SELECT_GAME_MODE;
     
     break;
    
@@ -330,14 +330,14 @@ void loop() {
   // green button: all buzz with steal, 
   // red button: all buz, not steal
        if(PollConsoleButtons(1)){
-        current_mode = GAME_IN_PROGRESS;
+        current_console_mode = GAME_IN_PROGRESS;
         current_game_type = GAME_TEAM_STEAL;
 
       //  ClearConsoleButtons(); // we've responded to the button push. Get ready for next button
        } else {
           if(PollConsoleButtons(2)){ //red button   
           
-          current_mode = GAME_IN_PROGRESS;
+          current_console_mode = GAME_IN_PROGRESS;
           current_game_type = GAME_LIGHTNING;
          }
        
@@ -379,10 +379,11 @@ void loop() {
       // transient frames:
       if (framecode[GO_TYPE] == START_CLOCK){
       //ResetPlayerList
+        StartCountdown(10); // ten seconds on the clock 
         LockoutEarlyBuzzers();
-        StartCountdown(10); // ten seconds on the clock
-        
         GoToFrame(framecode[GO_GO]);
+        
+
       }
 
 
@@ -521,6 +522,9 @@ void LoadGameFrame(){
  
   }
 
+  lcd.setCursor(0,0);
+    lcd.print(framecode[GO_TYPE]);
+
   // display the game code at the bottom of the screen
   /*
   lcd.setCursor(1, 1);
@@ -533,11 +537,11 @@ void LoadGameFrame(){
 }
 
 
-byte ModeChanged(){
+byte ConsoleModeChanged(){
 /* --------------------
   Inputs: none
   Global: 
-    current_mode, last_mode (byte) current global mode
+    current_console_mode, last_console_mode (byte) current global mode
     Timer1 - interrupt timer object
     
   Return: (bool/byte)
@@ -547,25 +551,20 @@ byte ModeChanged(){
   Note: Also enables/disables interrupt-driven timers if necessary
 */
 
- byte retVal  = false;  
-  
-
-   if (last_mode != current_mode){ // need to init new mode
-   
-    if (last_mode == CONSOLE_MENU){ // add ORs here for modes that use timer
+  byte retVal  = false;  
+  if (last_console_mode != current_console_mode){ // need to init new mode
+    if (last_console_mode == CONSOLE_MENU){ // add ORs here for modes that use timer
       DisableRotaryScanner();
     }
-    
-    if (current_mode == CONSOLE_MENU){
+
+    if (current_console_mode == CONSOLE_MENU){
       EnableRotaryScanner();
     }
 
-    last_mode = current_mode;
+    last_console_mode = current_console_mode;
     retVal = true;
-       
   }    
   return retVal;
-                  
 }
 
 
