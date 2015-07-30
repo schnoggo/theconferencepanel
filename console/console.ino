@@ -414,7 +414,7 @@ void loop() {
 
       if(framecode[GO_STOP]>0){
         if(PollConsoleButtons(2)){
-         ClearConsoleButtons(); // we've responded to the button push. Get ready for next button
+         //ClearConsoleButtons(); // we've responded to the button push. Get ready for next button
           ClearNeoClock();
           GoToFrame(framecode[GO_STOP]);
         }
@@ -507,6 +507,9 @@ void LoadGameFrame(){
       lcd.setBacklight(BACKLIGHT_YELLOW);
       DisplayModeTitle(FetchFrameName(current_frame));
       DQTeam(buzzing_team); // last buzzing team is ineliguble
+      ClearNeoClock(); //reset the clock
+      ClearSubMode(); // erase currently displaying player/team
+
       PlayGameAnimation(framecode[GO_TYPE]);
       break;
    case ANIM_TIME:
