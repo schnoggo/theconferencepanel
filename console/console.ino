@@ -174,6 +174,7 @@ byte current_console_mode = 0;
 byte last_console_mode = 254;
 byte current_game_type = 0;
 byte current_frame = 0;
+byte last_game_frame = 254;
 byte framecode[5]; // global array of this frame's instuctions
 
 byte current_button_list[4]; // do this global to avoid cycles to allocate every test
@@ -390,13 +391,15 @@ void loop() {
 
       if(framecode[GO_GO]>0){
         if(PollConsoleButtons(1)){
-           ClearConsoleButtons(); // we've responded to the button push. Get ready for next button
+          // ClearConsoleButtons(); // we've responded to the button push. Get ready for next button
           switch(framecode[GO_TYPE]){
             case START_CLOCK:
               StartCountdown(10); // ten seconds on the clock
+              ClearSubMode();
               break;
 
             case PLAYER:
+            ClearSubMode();
               break;
           } 
           switch(framecode[GO_GO]){
@@ -465,7 +468,7 @@ void LoadGameFrame(){
 #define PAUSE 4
 #define PLAYER 2
 */
-  
+  last_game_frame = current_frame;
   FetchGameInstruction(current_game_type, current_frame, &framecode[0]); // pass pointer to first elemnt of our instruction array
  /*
   Serial.print("Frame 0: ");
@@ -491,7 +494,6 @@ void LoadGameFrame(){
        lcd.setBacklight(BACKLIGHT_RED);
       DisplayModeTitle(FetchFrameName(current_frame));
       ClearSubMode();
- 
    break;
  
    case SYSTEM:
