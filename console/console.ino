@@ -14,7 +14,7 @@
 // the I2C bus.
 Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 
-#define SERIAL_DEBUG true
+#define SERIAL_DEBUG false
 
 
 // These #defines make it easy to set the backlight color
@@ -343,16 +343,26 @@ void loop() {
 
     default: 
      //  DisplayModeTitle("Default(n prog?)");
-      // transient frames:
-      if (framecode[GO_TYPE] == START_CLOCK){
+      switch (framecode[GO_TYPE]) {
+      
+     
+     
+     // transient frames:
+      case RESET:
+      ResetPlayerList();
+      ClearNeoClock(); //reset the clock
+      ClearSubMode(); // erase currently displaying player/team   break;
+  break; 
+  
+      case START_CLOCK:
       
       //ResetPlayerList
         StartCountdown(10); // ten seconds on the clock 
         LockoutEarlyBuzzers();
         GoToFrame(framecode[GO_GO]);
 
-      } else {
-     
+     break;
+     default: // regular frames:
 
       if(framecode[GO_PLAYER]>0){
         buzzing_teamplayer=PollUserButtons(false);

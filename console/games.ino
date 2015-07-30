@@ -20,11 +20,11 @@ const byte mode_instructions[23][5]  = {
 { 0,  0, 12,  0, ANIM_FAIL}, //09 
 { 0,  0, 02,  0, ANIM_TIME}, //10
 { 0,  0,  8,  0, ANIM_WIN}, //11
-{ 15,  2,  0,  0, HOST}, // 12 Steal?
+{ 15,  16,  0,  0, HOST}, // 12 Steal?
 { 2,  0,  0,  0, ANIM_MINOR_FAIL}, // 13 Minor Fail animation (failed steal)
 { 4,  0,   0,  0,  PAUSE}, // 14
 { 6,  0,   0,  0,  START_CLOCK}, // 15
-{ 0,  0,  0,  0, SYSTEM}, // 16 placeholder
+{ 3,  0,  0,  0, RESET}, // 16 reset
 
 { 18,  0,  0,  0, SYSTEM}, // 17 idle
 { 19,  0,  0,  0, HOST}, // 18 read Q

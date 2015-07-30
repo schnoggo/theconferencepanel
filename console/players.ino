@@ -30,6 +30,7 @@ void DQPlayer(byte player_num, byte team_num){
     lcd.print(team_num);
     
      player_status[((team_num-1) * PLAYERS_PER_TEAM) + player_num-1]=1;
+     LightOnePlayer(player_num, team_num,  pixel_ring.Color(255, 0, 0));
 }
 
 
