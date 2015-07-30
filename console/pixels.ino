@@ -47,7 +47,7 @@ void ClearNeoClock(){
       clock_display_state_sec = 0;
       clock_display_state_range = 99;
       c =  pixel_ring.Color(0, 0, 0);
-        for(uint16_t i=0; i<pixel_ring.numPixels(); i++) {
+        for(uint16_t i=0; i<CLOCK_RING_SIZE; i++) {
       pixel_ring.setPixelColor(i, c);
   }
       pixel_ring.show();

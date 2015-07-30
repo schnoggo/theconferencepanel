@@ -151,6 +151,7 @@ ButtonLine buttonLines[NUMBER_OF_TEAMS+1]; // 0th "team" is console
 #define PLAYER 2
 #define START_CLOCK 11
 #define SYSTEM 13
+#define RESET 14
 
 // CONSOLE MODES
 #define CONSOLE_MENU 0
@@ -330,10 +331,9 @@ void loop() {
 
       // ClearConsoleButtons(); // we've responded to the button push. Get ready for next button
        } else {
-          if(PollConsoleButtons(2)){ //red button   
-          
-          current_console_mode = GAME_IN_PROGRESS;
-          current_game_type = GAME_LIGHTNING;
+          if(PollConsoleButtons(2)){ //red button             
+            current_console_mode = GAME_IN_PROGRESS;
+            current_game_type = GAME_LIGHTNING;
          }
        
        }
@@ -345,6 +345,7 @@ void loop() {
      //  DisplayModeTitle("Default(n prog?)");
       // transient frames:
       if (framecode[GO_TYPE] == START_CLOCK){
+      
       //ResetPlayerList
         StartCountdown(10); // ten seconds on the clock 
         LockoutEarlyBuzzers();
@@ -386,12 +387,6 @@ void loop() {
         if(PollConsoleButtons(1)){
           // ClearConsoleButtons(); // we've responded to the button push. Get ready for next button
           switch(framecode[GO_TYPE]){
-            case START_CLOCK:
-              StartCountdown(10); // ten seconds on the clock
-              LockoutEarlyBuzzers();
-              ClearSubMode();
-              break;
-
             case PLAYER:
             ClearSubMode();
               break;
@@ -466,6 +461,8 @@ void LoadGameFrame(){
    // read q, judge, points
     lcd.setBacklight(BACKLIGHT_RED);
     DisplayModeTitle(FetchFrameName(current_frame));
+    ClearNeoClock(); //reset the clock
+    delay(1000);
    break;
  
    case PLAYER:
@@ -481,6 +478,12 @@ void LoadGameFrame(){
       DisplayModeTitle(FetchFrameName(current_frame));
             ClearSubMode();
    break;
+ 
+   case RESET:
+      ResetPlayerList();
+      ClearNeoClock(); //reset the clock
+      ClearSubMode(); // erase currently displaying player/team   break;
+  break; 
  
    case SYSTEM:
       lcd.setBacklight(BACKLIGHT_TEAL);
@@ -504,7 +507,7 @@ void LoadGameFrame(){
        ResetPlayerList();
        ClearNeoClock(); //reset the clock
        ClearSubMode(); // erase currently displaying player/tea
-   
+   break;
    
    case ANIM_TIME:
       lcd.setBacklight(BACKLIGHT_YELLOW);
@@ -525,8 +528,6 @@ void LoadGameFrame(){
  
   }
 
-  lcd.setCursor(0,0);
-    lcd.print(framecode[GO_TYPE]);
 
   // display the game code at the bottom of the screen
   /*

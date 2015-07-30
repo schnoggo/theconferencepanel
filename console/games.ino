@@ -7,7 +7,7 @@ GAME_ALL_PLAY 2
 */
 
 
-const byte mode_instructions[16][5]  = {
+const byte mode_instructions[23][5]  = {
 { 1,  0,  0,  0, SYSTEM}, // 00 init
 { 2,  0,  0,  0, SYSTEM}, // 01 idle
 { 3,  0,  0,  0, HOST}, // 02 read Q
@@ -24,13 +24,22 @@ const byte mode_instructions[16][5]  = {
 { 2,  0,  0,  0, ANIM_MINOR_FAIL}, // 13 Minor Fail animation (failed steal)
 { 4,  0,   0,  0,  PAUSE}, // 14
 { 6,  0,   0,  0,  START_CLOCK}, // 15
+{ 0,  0,  0,  0, SYSTEM}, // 16 placeholder
+
+{ 18,  0,  0,  0, SYSTEM}, // 17 idle
+{ 19,  0,  0,  0, HOST}, // 18 read Q
+{ 20,  0,  0,  0, START_CLOCK}, //19 start clock
+{200, 17, 10,  21, PLAYER}, // 20 wait for answer
+{11,  22,  0,  0, HOST}, // 21 JUDGE!
+{ 17,  0,  0,  0, ANIM_FAIL} //22
+
 
 };
 
- char* mode_names[]   = {"Initializing", "Idle", "Read Question", "Start Timer",
-"Wait for Answer", "Correct?","Wait For Steal", "Correct?", "Award Points", "-WRONG-", 
-"- TIME -", 
-"- CORRECT -", "Steal?", 
+ char* mode_names[]   = {"Initializing", "Idle", "Read Question", "Start Timer", // 0 - 3
+"Wait for Answer", "Correct?","Wait For Steal", "Correct?", "Award Points", "-WRONG-", // 4 - 9
+"- TIME -", // 10
+"- CORRECT -", "Steal?",  // 11 -12
 "- NOPE -",
 "PAUSE",
 "start steal"
@@ -44,6 +53,8 @@ const byte mode_instructions[16][5]  = {
       "Lightning",
       "All play"
       };
+  
+  byte game_start[3] = {0, 17, 17};
 
 void FetchGameInstruction(byte game, byte frame, byte *instruction_list) {
   /*
@@ -53,7 +64,7 @@ void FetchGameInstruction(byte game, byte frame, byte *instruction_list) {
   */
   byte i;
   for (i=0; i < 5; i++){
-    instruction_list[i] = mode_instructions[frame][i];
+    instruction_list[i] = mode_instructions[game_start[game] + frame][i];
   }
   
 }
