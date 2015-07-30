@@ -46,8 +46,6 @@ Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
 Adafruit_NeoPixel pixel_ring = Adafruit_NeoPixel( CLOCK_RING_SIZE +(PLAYERS_PER_TEAM*NUMBER_OF_TEAMS*2), NEOPIXEL_PIN, NEO_GRB + NEO_KHZ800);
 
-
-
 #define TEAM1PIN 0
 #define TEAM2PIN 1
 
@@ -60,8 +58,6 @@ Adafruit_NeoPixel pixel_ring = Adafruit_NeoPixel( CLOCK_RING_SIZE +(PLAYERS_PER_
 ClickEncoder *encoder;
 int16_t rotary_last, rotary_current;
 ClickEncoder::Button rotary_button;
-
-
 
 #define GO_GO 0
 #define GO_STOP 1
@@ -164,8 +160,6 @@ ButtonLine buttonLines[NUMBER_OF_TEAMS+1]; // 0th "team" is console
 #define ENTER_PLAYERS 4
 #define GAME_IN_PROGRESS 5
 #define CALIBRATING_RESISTORS 6
-
-
 
 unsigned long calibrate_tick = 0;
 // set to 1 to set up mode where we can get resistor values
@@ -334,7 +328,7 @@ void loop() {
         current_console_mode = GAME_IN_PROGRESS;
         current_game_type = GAME_TEAM_STEAL;
 
-      ClearConsoleButtons(); // we've responded to the button push. Get ready for next button
+      // ClearConsoleButtons(); // we've responded to the button push. Get ready for next button
        } else {
           if(PollConsoleButtons(2)){ //red button   
           
@@ -349,6 +343,16 @@ void loop() {
 
     default: 
      //  DisplayModeTitle("Default(n prog?)");
+      // transient frames:
+      if (framecode[GO_TYPE] == START_CLOCK){
+      //ResetPlayerList
+        StartCountdown(10); // ten seconds on the clock 
+        LockoutEarlyBuzzers();
+        GoToFrame(framecode[GO_GO]);
+
+      } else {
+     
+
       if(framecode[GO_PLAYER]>0){
         buzzing_teamplayer=PollUserButtons(false);
         buzzing_player=(byte) (buzzing_teamplayer & 0x0F);
@@ -357,7 +361,7 @@ void loop() {
                                                                               
         if (buzzing_player>0){
           // depending on game type, we may need to lock out this player, the player team, or reset everything
-          ClearUserButtons();
+          //ClearUserButtons();
         lcd.setCursor(0, 1);
         lcd.print("player");
         lcd.setCursor(10, 1);
@@ -377,22 +381,14 @@ void loop() {
         }
         Time2Neo(GetCountdownSeconds(),  GameTimer.duration);
       }
-      // transient frames:
-      if (framecode[GO_TYPE] == START_CLOCK){
-      //ResetPlayerList
-        StartCountdown(10); // ten seconds on the clock 
-        LockoutEarlyBuzzers();
-        GoToFrame(framecode[GO_GO]);
-        
-
-      }
 
       if(framecode[GO_GO]>0){
         if(PollConsoleButtons(1)){
-          ClearConsoleButtons(); // we've responded to the button push. Get ready for next button
+          // ClearConsoleButtons(); // we've responded to the button push. Get ready for next button
           switch(framecode[GO_TYPE]){
             case START_CLOCK:
               StartCountdown(10); // ten seconds on the clock
+              LockoutEarlyBuzzers();
               ClearSubMode();
               break;
 
@@ -414,7 +410,7 @@ void loop() {
 
       if(framecode[GO_STOP]>0){
         if(PollConsoleButtons(2)){
-         ClearConsoleButtons(); // we've responded to the button push. Get ready for next button
+         // ClearConsoleButtons(); // we've responded to the button push. Get ready for next button
           ClearNeoClock();
           GoToFrame(framecode[GO_STOP]);
         }
@@ -427,7 +423,7 @@ void loop() {
         }
       }
 
-
+}
 
       //
       ServiceGameAnimation();
@@ -437,19 +433,6 @@ void loop() {
   
 
 } // The Loop
-
-void ClearConsoleButtons() {
-/*
-    buttonLines[0].lastbutton = 0;
-    buttonLines[0].state = 4;
-    buttonLines[0].lastvalue = 9999;
-    buttonLines[0].repeat_count = 0;
-    buttonLines[0].down_buttons = 0;
-*/
-     buttonLines[0].lastvalue = 0;
-    buttonLines[0].state = 4; // unknown
-}
-
 
 
 
@@ -489,20 +472,22 @@ void LoadGameFrame(){
    // wait for answer, steal
       lcd.setBacklight(BACKLIGHT_GREEN);
       DisplayModeTitle(FetchFrameName(current_frame));
+      ClearSubMode();
    break;
  
    case START_CLOCK:
    // start clock
        lcd.setBacklight(BACKLIGHT_RED);
       DisplayModeTitle(FetchFrameName(current_frame));
-      LockoutEarlyBuzzers();
-      ClearSubMode();
+            ClearSubMode();
    break;
  
    case SYSTEM:
       lcd.setBacklight(BACKLIGHT_TEAL);
       DisplayModeTitle(FetchFrameName(current_frame));
       ResetPlayerList();
+      ClearSubMode();
+
    break;
  
    case ANIM_FAIL:

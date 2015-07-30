@@ -46,6 +46,7 @@ void LockoutEarlyBuzzers() {
  // Checks to see if someone is already byzzing and locks them out.
        Serial.print("LockoutEarlyBuzzers()");
         lcd.setBacklight(BACKLIGHT_WHITE);
+        uint32_t c =  NeoWheel(55);
 
   byte junk = PollUserButtons(true); // true = lockout any buttons already down
 
@@ -268,7 +269,7 @@ byte PollConsoleButtons(byte lookingfor) {
             } // debounce timer
       } // last butto is the button we are looking for
       }
-  } else { // idesired button not down
+  } else { // desired button not down
         if (any_button_down == 0){
           buttonLines[0].down_buttons = 0;
             buttonLines[0].state = 0; // button is up
@@ -278,5 +279,18 @@ byte PollConsoleButtons(byte lookingfor) {
   
 
   return retVal;
+}
+
+
+void ClearConsoleButtons() {
+/*
+    buttonLines[0].lastbutton = 0;
+    buttonLines[0].state = 4;
+    buttonLines[0].lastvalue = 9999;
+    buttonLines[0].repeat_count = 0;
+    buttonLines[0].down_buttons = 0;
+*/
+    // buttonLines[0].lastvalue = 0;
+    buttonLines[0].state = 4; // unknown
 }
 
