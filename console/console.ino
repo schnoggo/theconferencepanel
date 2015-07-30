@@ -360,11 +360,11 @@ void loop() {
           ClearUserButtons();
         lcd.setCursor(0, 1);
         lcd.print("player");
-        lcd.setCursor(9, 1);
+        lcd.setCursor(10, 1);
         lcd.print("team");
         lcd.setCursor(7, 1);
         lcd.print(buzzing_player);                                                                               
-        lcd.setCursor(14, 1);
+        lcd.setCursor(15, 1);
         lcd.print(buzzing_team); 
 
           // Light up the buzzing player:
