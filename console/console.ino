@@ -334,7 +334,7 @@ void loop() {
         current_console_mode = GAME_IN_PROGRESS;
         current_game_type = GAME_TEAM_STEAL;
 
-      //  ClearConsoleButtons(); // we've responded to the button push. Get ready for next button
+      ClearConsoleButtons(); // we've responded to the button push. Get ready for next button
        } else {
           if(PollConsoleButtons(2)){ //red button   
           
@@ -389,7 +389,7 @@ void loop() {
 
       if(framecode[GO_GO]>0){
         if(PollConsoleButtons(1)){
-          // ClearConsoleButtons(); // we've responded to the button push. Get ready for next button
+          ClearConsoleButtons(); // we've responded to the button push. Get ready for next button
           switch(framecode[GO_TYPE]){
             case START_CLOCK:
               StartCountdown(10); // ten seconds on the clock
@@ -414,7 +414,7 @@ void loop() {
 
       if(framecode[GO_STOP]>0){
         if(PollConsoleButtons(2)){
-         //ClearConsoleButtons(); // we've responded to the button push. Get ready for next button
+         ClearConsoleButtons(); // we've responded to the button push. Get ready for next button
           ClearNeoClock();
           GoToFrame(framecode[GO_STOP]);
         }
@@ -447,7 +447,7 @@ void ClearConsoleButtons() {
     buttonLines[0].down_buttons = 0;
 */
      buttonLines[0].lastvalue = 0;
-    buttonLines[0].state = 0; // button up
+    buttonLines[0].state = 4; // unknown
 }
 
 
@@ -495,6 +495,7 @@ void LoadGameFrame(){
    // start clock
        lcd.setBacklight(BACKLIGHT_RED);
       DisplayModeTitle(FetchFrameName(current_frame));
+      LockoutEarlyBuzzers();
       ClearSubMode();
    break;
  

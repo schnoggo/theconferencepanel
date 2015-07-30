@@ -45,6 +45,7 @@ void ClearUserButtons() {
 void LockoutEarlyBuzzers() {
  // Checks to see if someone is already byzzing and locks them out.
        Serial.print("LockoutEarlyBuzzers()");
+        lcd.setBacklight(BACKLIGHT_WHITE);
 
   byte junk = PollUserButtons(true); // true = lockout any buttons already down
 
@@ -202,11 +203,6 @@ byte PollConsoleButtons(byte lookingfor) {
   */
   byte retVal;
 
-
-
-        
-        
-  
   retVal=0; // false unless we find a debounced and non-repeating button
   byte desired_button_down = 0;
   byte any_button_down = 0;
@@ -225,9 +221,23 @@ byte PollConsoleButtons(byte lookingfor) {
   }
 
     if (desired_button_down){ // button pressed   
-      if (buttonLines[0].state != 3){
-            //    Serial.println(" not 3");
-
+      switch (buttonLines[0].state){
+        case 4:
+          // don't do anything until we see an up state
+        
+        break;
+        
+        
+        
+        case 3:
+        
+        
+        
+        break;
+        
+        
+        default: // not 3 or 4
+            
         if (lookingfor != buttonLines[0].lastvalue) { // have we seen this before?
           // lookingfor not the last pressed button - set up the debounce counter
           buttonLines[0].lastvalue = lookingfor;
@@ -257,19 +267,13 @@ byte PollConsoleButtons(byte lookingfor) {
                 }
             } // debounce timer
       } // last butto is the button we are looking for
-    } else {
-    // was already down, so don' return a new value
-    if (SERIAL_DEBUG){
-     // Serial.println("repeating");
       }
-    } // buttonLines[0].state = 3
+  } else { // idesired button not down
+        if (any_button_down == 0){
+          buttonLines[0].down_buttons = 0;
+            buttonLines[0].state = 0; // button is up
 
-  } else { // if no button down, don't return value
-if (any_button_down == 0){
-buttonLines[0].down_buttons = 0;
-            buttonLines[0].state = 0; // button is still up
-
-}
+        }
   }
   
 
