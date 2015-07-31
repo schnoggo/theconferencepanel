@@ -174,6 +174,7 @@ unsigned long calibrate_tick = 0;
 byte current_console_mode = 0;
 byte last_console_mode = 254;
 byte current_game_type = 0;
+byte prev_game_type =99;
 byte current_frame = 0;
 byte last_game_frame = 254;
 byte framecode[5]; // global array of this frame's instuctions
@@ -337,14 +338,12 @@ void loop() {
         delay(1000);
         lcd.setCursor(0, 1);
         lcd.print("   ");
-        }        
-    
-    
-    
+        }            
     break;
 
     default: 
-      if (need2init_mode){
+      if (prev_game_type != current_game_type){
+        prev_game_type = current_game_type;
         // load first frame:
         current_frame = 0;    
         LoadGameFrame();  

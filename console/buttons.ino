@@ -313,17 +313,36 @@ byte PollConsoleButtons(byte lookingfor) {
           Serial.println(lookingfor);  
         }
         console_buttons[lookingfor-1].state = 3; // still down
-
         retVal = 1;
       }
+      
+      // debug:
+        uint32_t c;
+      if (console_buttons[0].state != console_buttons[0].prev_state){
+        if ((console_buttons[0].state == 1) || (console_buttons[0].state == 3)){
+          c = pixel_ring.Color(0, 255, 0);
+        } else {
+          c = pixel_ring.Color(0, 0, 0);
+        }
+        pixel_ring.setPixelColor(0, c);
+        }
+      if (console_buttons[1].state != console_buttons[1].prev_state){
+
+  if ((console_buttons[1].state == 1) || (console_buttons[1].state == 3)){
+          c = pixel_ring.Color(255, 0, 0);
+        } else {
+          c = pixel_ring.Color(0, 0, 0);
+        }
+        pixel_ring.setPixelColor(1, c);
+        }
+        pixel_ring.show();
+
+
    // }
     
     for (i=0; i<3; i++) {
       console_buttons[i].prev_state = console_buttons[i].state;
-    }
-
-    
-             
+    }     
                 
   return retVal;
 }
