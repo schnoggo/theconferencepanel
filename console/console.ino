@@ -14,7 +14,7 @@
 // the I2C bus.
 Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 
-#define SERIAL_DEBUG true
+#define SERIAL_DEBUG false
 
 
 // These #defines make it easy to set the backlight color
@@ -292,7 +292,7 @@ void loop() {
 }
 */
       current_console_mode = SELECT_GAME_MODE;
-      current_console_mode = TEST_CONSOLE_BUTTONS;
+      //current_console_mode = TEST_CONSOLE_BUTTONS;
       
     
     break;
@@ -320,8 +320,6 @@ void loop() {
       if(PollConsoleButtons(2)){ //red button             
         current_console_mode = GAME_IN_PROGRESS;
         current_game_type = GAME_LIGHTNING;
-        current_game_type = GAME_TEAM_STEAL; // debug
-
       }     
     break;
 
@@ -346,6 +344,11 @@ void loop() {
     break;
 
     default: 
+      if (need2init_mode){
+        // load first frame:
+        current_frame = 0;    
+        LoadGameFrame();  
+      }
      //  DisplayModeTitle("Default(n prog?)");
       switch (framecode[GO_TYPE]) {
       
