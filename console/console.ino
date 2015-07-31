@@ -14,7 +14,7 @@
 // the I2C bus.
 Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 
-#define SERIAL_DEBUG false
+#define SERIAL_DEBUG true
 
 
 // These #defines make it easy to set the backlight color
@@ -166,6 +166,7 @@ ButtonLine buttonLines[NUMBER_OF_TEAMS+1]; // 0th "team" is console
 #define ENTER_PLAYERS 4
 #define GAME_IN_PROGRESS 5
 #define CALIBRATING_RESISTORS 6
+#define TEST_CONSOLE_BUTTONS 7
 
 unsigned long calibrate_tick = 0;
 // set to 1 to set up mode where we can get resistor values
@@ -238,27 +239,9 @@ void setup() {
 	InitConsoleButtons();
 	current_console_mode = CONSOLE_MENU;
 	current_frame = 0;
-	/*
-  LightPlayer(1,1,pixel_ring.Color(1, 0, 100),0);
-  LightPlayer(2,1,pixel_ring.Color(30, 100, 0),0);
-  LightPlayer(3,1,pixel_ring.Color(255, 0, 0),0);
-    LightPlayer(4,1,pixel_ring.Color(0, 255, 2g5),0);
-
-
- LightPlayer(1,1,pixel_ring.Color(0, 0, 20),0);
-  LightPlayer(2,1,pixel_ring.Color(0, 20, 0),0);
-  LightPlayer(3,1,pixel_ring.Color(20, 0, 0),0);
-    LightPlayer(4,1,pixel_ring.Color(20, 0, 20),0);
-    
- LightPlayer(1,2,pixel_ring.Color(0, 0, 20),0);
-  LightPlayer(2,2,pixel_ring.Color(0, 20, 0),0);
-  LightPlayer(3,2,pixel_ring.Color(20, 0, 0),0);
-    LightPlayer(4,2,pixel_ring.Color(20, 0, 20),0);
-    */
     
 	LoadGameFrame();  
 	randomSeed(analogRead(2));
-	
 	Serial.println("STARTUP");
 	
 }
@@ -309,6 +292,8 @@ void loop() {
 }
 */
       current_console_mode = SELECT_GAME_MODE;
+      current_console_mode = TEST_CONSOLE_BUTTONS;
+      
     
     break;
    
@@ -340,6 +325,25 @@ void loop() {
       }     
     break;
 
+    case TEST_CONSOLE_BUTTONS:
+      if(PollConsoleButtons(1)){
+        lcd.setCursor(0, 0);
+        lcd.print("green");
+        delay(1000);
+        lcd.setCursor(0, 0);
+        lcd.print("     ");
+        }
+       if(PollConsoleButtons(2)){
+        lcd.setCursor(0, 1);
+        lcd.print("red");
+        delay(1000);
+        lcd.setCursor(0, 1);
+        lcd.print("   ");
+        }        
+    
+    
+    
+    break;
 
     default: 
      //  DisplayModeTitle("Default(n prog?)");
@@ -425,18 +429,7 @@ void loop() {
 
 
 void LoadGameFrame(){
-  /*
-  #define ANIM_FAIL 6
-#define ANIM_GAME_OVER 9
-#define ANIM_SINGLE_CORRECT 7
-#define ANIM_SINGLE_WRONG 8
-#define ANIM_TIME 10
-#define ANIM_WIN 5
-#define HOST 1
-#define LIGHTNING 3
-#define PAUSE 4
-#define PLAYER 2
-*/
+  
   //last_game_frame = current_frame;
   FetchGameInstruction(current_game_type, current_frame, &framecode[0]); // pass pointer to first elemnt of our instruction array
  /*
@@ -466,9 +459,9 @@ void LoadGameFrame(){
  
    case START_CLOCK:
    // start clock
-       lcd.setBacklight(BACKLIGHT_RED);
+      lcd.setBacklight(BACKLIGHT_RED);
       DisplayModeTitle(FetchFrameName(current_frame));
-            ClearSubMode();
+      ClearSubMode();
    break;
  
    case RESET:
@@ -508,6 +501,7 @@ void LoadGameFrame(){
       ClearNeoClock();
       break;
    case ANIM_WIN:
+      ClearSubMode(); // erase currently displaying player/tea
       lcd.setBacklight(BACKLIGHT_YELLOW);
       DisplayModeTitle(FetchFrameName(current_frame));
       ResetPlayerList();
@@ -522,14 +516,14 @@ void LoadGameFrame(){
 
 
   // display the game code at the bottom of the screen
-  /*
+  
   lcd.setCursor(1, 1);
 	byte i;
   for (i=0; i < 5; i++){
     lcd.print(framecode[i]);
     lcd.print(" ");
   }
-  */
+
 }
 
 

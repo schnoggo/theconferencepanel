@@ -200,6 +200,7 @@ byte PollConsoleButtons(byte lookingfor) {
   states
     0 up
     1 down
+    2 waiting to settle
     3 still down
     4 unknown
   
@@ -211,10 +212,11 @@ byte PollConsoleButtons(byte lookingfor) {
   
   
   byte retVal=0; // false unless we find a debounced and non-repeating button
-  byte currently_down = 0;
   
   
   for (i=0; i<3; i++) {
+    byte currently_down = 0;
+
     // read pin: different pins are read in different ways
       switch (i) {
         case 0:
@@ -229,7 +231,25 @@ byte PollConsoleButtons(byte lookingfor) {
         // not implemented
         break;
       }
-    
+     /* if (SERIAL_DEBUG){
+          Serial.print("button ");
+          Serial.print(i);
+          Serial.print(": state:");
+          Serial.print(console_buttons[i].state);
+          Serial.print(", ");
+        } */
+        
+         if (currently_down){
+          Serial.print(i);
+          Serial.print(": ");
+          Serial.print(console_buttons[i].debounce_count);
+          Serial.print(" state: ");
+          Serial.println(console_buttons[i].state);
+          }
+                    
+
+          
+         
       switch (console_buttons[i].state){
         case 0: //up
           if (currently_down){
@@ -244,7 +264,7 @@ byte PollConsoleButtons(byte lookingfor) {
         case 1: //down
           if (currently_down){
             console_buttons[i].seen_up = 0; // need to see it up before we count this again
-            console_buttons[i].state = 3; // still down
+            //console_buttons[i].state = 3; // still down
           } else {
             console_buttons[i].state = 0; // up
             console_buttons[i].seen_up = 1;
@@ -282,17 +302,21 @@ byte PollConsoleButtons(byte lookingfor) {
         break;    
       }
     }
-    
+    /* if (SERIAL_DEBUG){
+          Serial.println(" ");
+        } */
     // all inputs read. Check to see if the one we want is ready
-    if (console_buttons[lookingfor-1].state != console_buttons[lookingfor-1].prev_state){
+   // if (console_buttons[lookingfor-1].state != console_buttons[lookingfor-1].prev_state){
       if (console_buttons[lookingfor-1].state == 1){
         if (SERIAL_DEBUG){
           Serial.print("button ");
           Serial.println(lookingfor);  
         }
+        console_buttons[lookingfor-1].state = 3; // still down
+
         retVal = 1;
       }
-    }
+   // }
     
     for (i=0; i<3; i++) {
       console_buttons[i].prev_state = console_buttons[i].state;

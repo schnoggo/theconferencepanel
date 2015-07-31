@@ -22,27 +22,45 @@ const byte mode_instructions[23][5]  = {
 { 0,  0,  8,  0, ANIM_WIN}, //11
 { 15,  16,  0,  0, HOST}, // 12 Steal?
 { 2,  0,  0,  0, ANIM_MINOR_FAIL}, // 13 Minor Fail animation (failed steal)
-{ 4,  0,   0,  0,  PAUSE}, // 14
-{ 6,  0,   0,  0,  START_CLOCK}, // 15
-{ 3,  0,  0,  0, RESET}, // 16 reset
+{ 6,  0,   0,  0,  START_CLOCK}, // 14
+{ 3,  0,  0,  0, RESET}, // 15 reset
+{ 3,  0,  0,  0, RESET}, // 16 placeholder
 
 { 18,  0,  0,  0, SYSTEM}, // 17 idle
 { 19,  0,  0,  0, HOST}, // 18 read Q
 { 20,  0,  0,  0, START_CLOCK}, //19 start clock
 {200, 17, 10,  21, PLAYER}, // 20 wait for answer
-{11,  22,  0,  0, HOST}, // 21 JUDGE!
+{ 11,  22,  0,  0, HOST}, // 21 JUDGE!
 { 17,  0,  0,  0, ANIM_FAIL} //22
-
-
 };
 
- char* mode_names[]   = {"Initializing", "Idle", "Read Question", "Start Timer", // 0 - 3
-"Wait for Answer", "Correct?","Wait For Steal", "Correct?", "Award Points", "-WRONG-", // 4 - 9
-"- TIME -", // 10
-"- CORRECT -", "Steal?",  // 11 -12
-"- NOPE -",
-"PAUSE",
-"start steal"
+ char* mode_names[]   = {
+ "Initializing", //0
+ "Idle", // 01
+ "Read Question",//02
+ "Start Timer", // 03
+"Wait for Answer", //04
+"Correct?", //05
+"Wait For Steal", //06
+"Correct?", //07
+"Award Points", //08
+"-WRONG-", // 09
+"- TIME -", //10
+"- CORRECT -", //11
+"Steal?",  // 12
+"- NOPE -", //13
+"start steal",//14
+"reset", //15
+"placeholder", //16
+
+
+"idle*", //17
+"Read Question*", //18
+"Start timer*", //19
+"Answers*", //20
+"Correct?*", //21
+"- NOPE* -", //22
+"hhh" //23
 
 };
   
