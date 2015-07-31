@@ -532,7 +532,6 @@ void LoadGameFrame(){
     break;
       
    case ANIM_WIN:
-      ClearSubMode(); // erase currently displaying player/tea
       lcd.setBacklight(BACKLIGHT_YELLOW);
       DisplayModeTitle(FetchFrameName(current_frame));
       ResetPlayerList();
