@@ -143,6 +143,9 @@ ButtonLine buttonLines[NUMBER_OF_TEAMS+1]; // 0th "team" is console
 #define GAME_LIGHTNING 1
 #define GAME_ALL_PLAY 2
 
+byte game_start_frame[3] = {2, 17, 18};
+
+
 // Screen types:
 #define ANIM_FAIL 6
 #define ANIM_GAME_OVER 9
@@ -317,13 +320,13 @@ void loop() {
       if(PollConsoleButtons(1)){
         current_console_mode = GAME_IN_PROGRESS;
         current_game_type = GAME_TEAM_STEAL;
-        current_frame = 0;
+        current_frame = game_start_frame[current_game_type];
         LoadGameFrame();
       }
       if(PollConsoleButtons(2)){ //red button             
         current_console_mode = GAME_IN_PROGRESS;
         current_game_type = GAME_LIGHTNING;
-        current_frame = 0;    
+        current_frame = game_start_frame[current_game_type];    
         LoadGameFrame();
       }     
     break;
@@ -349,7 +352,7 @@ void loop() {
       if (prev_game_type != current_game_type){
         prev_game_type = current_game_type;
         // load first frame:
-        current_frame = 0;    
+        current_frame = game_start_frame[current_game_type];
         LoadGameFrame();  
       }
      //  DisplayModeTitle("Default(n prog?)");
@@ -374,6 +377,7 @@ void loop() {
        
        
        case HOST:
+       case SYSTEM:
        // CONSOLE GO BUTTON
         if(framecode[GO_GO]>0){
           if(PollConsoleButtons(1)){

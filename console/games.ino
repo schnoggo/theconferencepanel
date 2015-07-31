@@ -26,7 +26,8 @@ const byte mode_instructions[23][5]  = {
 { 0,  0,  2,  0, RESET}, // 15 reset
 { 0,  0,  2,  0, RESET}, // 16 placeholder
 
-{ 18,  0,  0,  0, SYSTEM}, // 17 idle
+//{ 18,  0,  0,  0, SYSTEM}, // 17 idle
+{ 00,  0,  18,  0, RESET}, // 17 idle
 { 19,  0,  0,  0, HOST}, // 18 read Q
 { 20,  0,  0,  0, START_CLOCK}, //19 start clock
 {200, 17, 10,  21, PLAYER}, // 20 wait for answer
@@ -72,7 +73,6 @@ const byte mode_instructions[23][5]  = {
       "All play"
       };
   
-  byte game_start[3] = {0, 17, 17};
 
 void FetchGameInstruction(byte game, byte frame, byte *instruction_list) {
   /*
@@ -82,7 +82,7 @@ void FetchGameInstruction(byte game, byte frame, byte *instruction_list) {
   */
   byte i;
   for (i=0; i < 5; i++){
-    instruction_list[i] = mode_instructions[game_start[game] + frame][i];
+    instruction_list[i] = mode_instructions[frame][i];
   }
   
 }
