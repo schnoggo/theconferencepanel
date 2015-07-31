@@ -317,10 +317,14 @@ void loop() {
       if(PollConsoleButtons(1)){
         current_console_mode = GAME_IN_PROGRESS;
         current_game_type = GAME_TEAM_STEAL;
+        current_frame = 0;
+        LoadGameFrame();
       }
       if(PollConsoleButtons(2)){ //red button             
         current_console_mode = GAME_IN_PROGRESS;
         current_game_type = GAME_LIGHTNING;
+        current_frame = 0;    
+        LoadGameFrame();
       }     
     break;
 
@@ -356,6 +360,7 @@ void loop() {
           ResetPlayerList();
           ClearNeoClock(); //reset the clock
           ClearSubMode(); // erase currently displaying player/team   break;
+          ClearPlayerLights();
           GoToFrame(framecode[GO_TIMER]);
 
         break; 
@@ -370,19 +375,18 @@ void loop() {
        
        case HOST:
        // CONSOLE GO BUTTON
-      if(framecode[GO_GO]>0){
-        if(PollConsoleButtons(1)){
+        if(framecode[GO_GO]>0){
+          if(PollConsoleButtons(1)){
             GoToFrame(framecode[GO_GO]);
-        } // PollConsoleButtons
-      }
-
-      // CONSOLE STOP BUTTON
-      if(framecode[GO_STOP]>0){
-        if(PollConsoleButtons(2)){
-          GoToFrame(framecode[GO_STOP]);
+          } // PollConsoleButtons
         }
-      } 
 
+        // CONSOLE STOP BUTTON
+        if(framecode[GO_STOP]>0){
+          if(PollConsoleButtons(2)){
+            GoToFrame(framecode[GO_STOP]);
+          }
+        }
        break;
        
        case ANIM_FAIL:
@@ -462,15 +466,7 @@ void LoadGameFrame(){
   
   //last_game_frame = current_frame;
   FetchGameInstruction(current_game_type, current_frame, &framecode[0]); // pass pointer to first elemnt of our instruction array
- /*
-  Serial.print("Frame 0: ");
-   Serial.print(framecode[0]);
-    Serial.print(",  ");
- Serial.print(framecode[1]);
-    Serial.print(",  ");
- Serial.println(framecode[2]);
  
- */
   switch (framecode[GO_TYPE]) {
    case HOST:
    // read q, judge, points
@@ -515,7 +511,7 @@ void LoadGameFrame(){
       ClearSubMode(); // erase currently displaying player/team
 
       PlayGameAnimation(framecode[GO_TYPE]);
-      break;
+     break;
    
    case ANIM_MINOR_FAIL: // failed steal
        ResetPlayerList();
@@ -530,7 +526,7 @@ void LoadGameFrame(){
       DisplayModeTitle(FetchFrameName(current_frame));
       PlayGameAnimation(framecode[GO_TYPE]);
       ClearNeoClock();
-      break;
+    break;
       
    case ANIM_WIN:
       ClearSubMode(); // erase currently displaying player/tea
@@ -538,7 +534,7 @@ void LoadGameFrame(){
       DisplayModeTitle(FetchFrameName(current_frame));
       ResetPlayerList();
       PlayGameAnimation(framecode[GO_TYPE]);
-      break;
+    break;
     
    default: 
        lcd.setBacklight(BACKLIGHT_RED);

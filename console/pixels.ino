@@ -128,6 +128,12 @@ byte pixel_num = ( (player-1)*2) + ((team-1) * (PLAYERS_PER_TEAM*2)) + 16;
   
 }
 
+void ClearPlayerLights(){
+  LightOnePlayer(99,0,0); // using an invalid player number so it will never match
+
+
+}
+
 void LightOnePlayer(uint8_t player, uint8_t team, uint32_t color){
 /* Light up just one player's lights
 
