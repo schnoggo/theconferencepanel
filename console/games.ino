@@ -23,8 +23,8 @@ const byte mode_instructions[23][5]  = {
 { 14,  15,  0,  0, HOST}, // 12 Steal?
 { 2,  0,  0,  0, ANIM_MINOR_FAIL}, // 13 Minor Fail animation (failed steal)
 { 6,  0,   0,  0,  START_CLOCK}, // 14 start steal clock
-{ 3,  0,  0,  0, RESET}, // 15 reset
-{ 3,  0,  0,  0, RESET}, // 16 placeholder
+{ 0,  0,  2,  0, RESET}, // 15 reset
+{ 0,  0,  2,  0, RESET}, // 16 placeholder
 
 { 18,  0,  0,  0, SYSTEM}, // 17 idle
 { 19,  0,  0,  0, HOST}, // 18 read Q

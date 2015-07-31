@@ -356,6 +356,8 @@ void loop() {
           ResetPlayerList();
           ClearNeoClock(); //reset the clock
           ClearSubMode(); // erase currently displaying player/team   break;
+          GoToFrame(framecode[GO_TIMER]);
+
         break; 
   
         case START_CLOCK:      
@@ -363,6 +365,32 @@ void loop() {
           StartCountdown(10); // ten seconds on the clock 
           LockoutEarlyBuzzers();
           GoToFrame(framecode[GO_GO]);
+       break;
+       
+       
+       case HOST:
+       // CONSOLE GO BUTTON
+      if(framecode[GO_GO]>0){
+        if(PollConsoleButtons(1)){
+            GoToFrame(framecode[GO_GO]);
+        } // PollConsoleButtons
+      }
+
+      // CONSOLE STOP BUTTON
+      if(framecode[GO_STOP]>0){
+        if(PollConsoleButtons(2)){
+          GoToFrame(framecode[GO_STOP]);
+        }
+      } 
+
+       break;
+       
+       case ANIM_FAIL:
+       case ANIM_MINOR_FAIL:
+       case ANIM_MINOR_WIN:
+       case ANIM_TIME:
+        ServiceGameAnimation();
+       
        break;
        
       default: // regular frames:
@@ -477,7 +505,6 @@ void LoadGameFrame(){
       DisplayModeTitle(FetchFrameName(current_frame));
       ResetPlayerList();
       ClearSubMode();
-
    break;
  
    case ANIM_FAIL:
@@ -494,6 +521,8 @@ void LoadGameFrame(){
        ResetPlayerList();
        ClearNeoClock(); //reset the clock
        ClearSubMode(); // erase currently displaying player/tea
+        GoToFrame(framecode[GO_TIMER]); // nat actual animation
+
    break;
    
    case ANIM_TIME:
@@ -502,6 +531,7 @@ void LoadGameFrame(){
       PlayGameAnimation(framecode[GO_TYPE]);
       ClearNeoClock();
       break;
+      
    case ANIM_WIN:
       ClearSubMode(); // erase currently displaying player/tea
       lcd.setBacklight(BACKLIGHT_YELLOW);
