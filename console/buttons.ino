@@ -231,14 +231,8 @@ byte PollConsoleButtons(byte lookingfor) {
         // not implemented
         break;
       }
-     /* if (SERIAL_DEBUG){
-          Serial.print("button ");
-          Serial.print(i);
-          Serial.print(": state:");
-          Serial.print(console_buttons[i].state);
-          Serial.print(", ");
-        } */
-        
+  
+        if (SERIAL_DEBUG){
          if (currently_down){
           Serial.print(i);
           Serial.print(": ");
@@ -246,7 +240,7 @@ byte PollConsoleButtons(byte lookingfor) {
           Serial.print(" state: ");
           Serial.println(console_buttons[i].state);
           }
-                    
+          }          
 
           
          
@@ -306,7 +300,6 @@ byte PollConsoleButtons(byte lookingfor) {
           Serial.println(" ");
         } */
     // all inputs read. Check to see if the one we want is ready
-   // if (console_buttons[lookingfor-1].state != console_buttons[lookingfor-1].prev_state){
       if (console_buttons[lookingfor-1].state == 1){
         if (SERIAL_DEBUG){
           Serial.print("button ");
@@ -317,6 +310,7 @@ byte PollConsoleButtons(byte lookingfor) {
       }
       
       // debug:
+      /*
         uint32_t c;
       if (console_buttons[0].state != console_buttons[0].prev_state){
         if ((console_buttons[0].state == 1) || (console_buttons[0].state == 3)){
@@ -336,9 +330,8 @@ byte PollConsoleButtons(byte lookingfor) {
         pixel_ring.setPixelColor(1, c);
         }
         pixel_ring.show();
+*/
 
-
-   // }
     
     for (i=0; i<3; i++) {
       console_buttons[i].prev_state = console_buttons[i].state;

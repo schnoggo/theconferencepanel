@@ -547,14 +547,14 @@ void LoadGameFrame(){
 
 
   // display the game code at the bottom of the screen
-  
+  /*
   lcd.setCursor(1, 1);
 	byte i;
   for (i=0; i < 5; i++){
     lcd.print(framecode[i]);
     lcd.print(" ");
   }
-
+*/
 }
 
 

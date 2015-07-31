@@ -59,10 +59,10 @@ const byte mode_instructions[25][5]  = {
 
 
 "idle*", //17
-"Read Question*", //18
-"Start timer*", //19
-"Wait for Answer*", //20
-"Correct?*", //21
+"Read Question", //18
+"Start timer", //19
+"Wait for Answer", //20
+"Correct?", //21
 "- YAY -", //22
 "-- BOO --", //23
 "Award Points" //24
