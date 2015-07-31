@@ -242,8 +242,7 @@ void setup() {
 	InitAnalogButtons();
 	InitConsoleButtons();
 	current_console_mode = CONSOLE_MENU;
-	current_frame = 0;
-    
+  current_frame = game_start_frame[current_game_type];    
 	LoadGameFrame();  
 	randomSeed(analogRead(2));
 	Serial.println("STARTUP");
@@ -372,7 +371,7 @@ void loop() {
         //ResetPlayerList
           StartCountdown(10); // ten seconds on the clock 
           LockoutEarlyBuzzers();
-          GoToFrame(framecode[GO_GO]);
+          GoToFrame(framecode[GO_TIMER]);
        break;
        
        
