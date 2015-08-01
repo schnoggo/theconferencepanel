@@ -1,6 +1,6 @@
 /*
 Globals:
-buttonLines - see struct in console
+buttonLines - see struct in console.h
 NUMBER_OF_TEAMS (define) -- number of lines to poll +1 (The size of the buttonLines array)
  byte lastbutton; // which button was "down" during last poll
  byte state;     // 0:still open,  1:from open to closed 2:from closed to closed 3:still closed, 4: unknown

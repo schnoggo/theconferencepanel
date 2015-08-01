@@ -16,14 +16,14 @@ ANIM_TEAM_FAIL:
 #define SEQUENCE_UNDEF 7
 #define SEQUENCE_END 8
 
-
+#define TOTAL_ANIMATION_FRAMES 16
 struct animframe{
-  byte type;
-  int duration;
+  byte type; // type of sequence record
+  int duration; // or animation "name" if SEQUENCE_START
   byte r;
   byte g;
   byte b;
-  } animations[16] ={
+  } animations[TOTAL_ANIMATION_FRAMES] ={
 	{SEQUENCE_START,      ANIM_PLAYER_FAIL,0,0,0},
   {LIGHT_BUZZING_PLAYER,1000,  255,000,000},
   {LIGHT_BUZZING_PLAYER,1000,  000,000,000},
@@ -37,11 +37,24 @@ struct animframe{
   {SEQUENCE_END,       0,  000,000,000},
 
   {SEQUENCE_START,     ANIM_TIME,0,0,0},
-  {LIGHT_ALL,          1000,  255,000,000},
-  {LIGHT_ALL,          1000,  000,000,000},
-  {LIGHT_ALL,          1000,  255,000,000},
+  {LIGHT_ALL,          5000,  255,000,000},
+  {LIGHT_ALL,          5000,  000,000,000},
+  {LIGHT_ALL,          5000,  255,000,000},
+  {LIGHT_ALL,          5000,  000,000,000},
+  {LIGHT_ALL,          5000,  255,000,000},
   {LIGHT_ALL,          0,  000,000,000},
-  {SEQUENCE_END,       0,  000,000,000}
+  {SEQUENCE_END,       0,  000,000,000},
+  
+  {SEQUENCE_START,     ANIM_MINOR_WIN,0,0,0},
+  {LIGHT_ALL,          1000,  000,255,000},
+  {LIGHT_ALL,          1000,  000,000,000},
+  {LIGHT_ALL,          1000,  000,255,000},
+  {LIGHT_ALL,          0,  000,000,000},
+  {SEQUENCE_END,       0,  000,000,000},
+  
+  
+  
+  
 
 };  
 
@@ -50,8 +63,16 @@ void PlayGameAnimation(byte animNum){
   game_animation.state = 1;
   game_animation.start_time = millis();
   game_animation.animation = animNum;
+  byte i;
   game_animation.step = 0;
+    for (i=0; i < TOTAL_ANIMATION_FRAMES; i++){
+      if( (SEQUENCE_START == animations[i].type) && ( animNum == animations[i].duration) ){
+        game_animation.step = i=1; // Next instruction is the beginning of the sequence
+      }
+    }  
 }
+
+
 void ServiceGameAnimation(){
   unsigned long end_time;
   int duration;
@@ -63,44 +84,54 @@ void ServiceGameAnimation(){
 
 
 
-  NeoWipe(pixel_ring.Color(0, 128, 0), 10); // Green
-  NeoWipe(pixel_ring.Color(0, 90, 90), 20); 
+ // NeoWipe(pixel_ring.Color(0, 128, 0), 10); // Green
+ // NeoWipe(pixel_ring.Color(0, 90, 90), 20); 
   game_animation.state = 2;
     break;
-    case 2: // main service routine
     
-      switch(game_animation.animation){
-      case ANIM_TEAM_FAIL:
-        duration = 2500;
+    case 2: // main service routine
+      // load sequence frame:
+        duration = animations[game_animation.step].duration;
+        uint32_t c = pixel_ring.Color(animations[game_animation.step].r, animations[game_animation.step].g, animations[game_animation.step].b);
+        switch (animations[game_animation.step].type){
+          case LIGHT_BUZZING_PLAYER:
+              LightOnePlayer(buzzing_player, buzzing_team, c); // player, team, color
+          break;
+        
+         case LIGHT_BUZZING_TEAM:
+            LightTeam(buzzing_team, c);
+          
+          
+          break; 
+        
+        case LIGHT_ALL:
+          LightTeam(1, c);
+          LightTeam(2, c);
+          
+          
+          break;  
+        
+        
+        
+        case SEQUENCE_END:
+          NeoWipe(pixel_ring.Color(0, 0, 0), 5); // Black
+          game_animation.state = 0;
+          GoToFrame(framecode[GO_TIMER]);        
         break;
         
-        default:
-        duration = 1500;
-      }
+        
+        }
+     
     
     end_time = game_animation.start_time + duration;
     if (end_time < millis()){
-      NeoWipe(pixel_ring.Color(0, 0, 0), 5); // Black
-    
-       game_animation.state = 0;
-     GoToFrame(framecode[GO_TIMER]);
+      game_animation.step++;
     } 
-    break;
+    break; // main service routine
   }
  // CheckMemoryUse();
 }
 
 void InitGameAnimations(){
   game_animation.state = 0;
- // commenting out other attributes since they are undefined anyway.
- // game_animation.start_time = 0;
- //  game_animation.animation = 0;
 }
-/*
-typedef struct {
- char state;     // 0:not active, 1:needs init, 2: playing
- unsigned long start_time; // time of last read that was closed
-  byte animation; // which line are we reading?
-
-} gameanimation;
-*/
