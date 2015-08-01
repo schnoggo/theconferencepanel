@@ -18,7 +18,7 @@ const byte mode_instructions[25][5]  = {
 {11, 15,  0,  0, HOST}, // 07 JUDGE! (steal) NO was 13
 { 15,  15,  0,  0, HOST}, // 08 award points
 { 0,  0, 12,  0, ANIM_TEAM_FAIL}, //09 
-{ 0,  0, 02,  0, ANIM_TIME}, //10
+{ 0,  0, 15,  0, ANIM_TIME}, //10
 { 0,  0,  8,  0, ANIM_WIN}, //11
 { 14,  15,  0,  0, HOST}, // 12 Steal?
 { 0,  0,  15,  0, ANIM_MINOR_FAIL}, // 13 Minor Fail animation (failed steal)
@@ -30,11 +30,12 @@ const byte mode_instructions[25][5]  = {
 { 00,  0,  18,  0, RESET}, // 17 idle
 { 19,  0,  0,  0, HOST}, // 18 read Q
 { 0,  0,  20,  0, START_CLOCK}, //19 start clock
-{200, 17, 23,  21, PLAYER}, // 20 wait for answer
+{200, 17, 25,  21, PLAYER}, // 20 wait for answer
 { 22,  23,  0,  0, HOST}, // 21 JUDGE!
 { 0,  0,  24,  0, ANIM_WIN}, //22
 { 0,  0,  17,  0, ANIM_PLAYER_FAIL}, //23
 {17,  0,  0,  0, HOST} // 24 award points
+{ 0,  0,  17,  0, ANIM_TIME} // 25 Time expired
 
 };
 
