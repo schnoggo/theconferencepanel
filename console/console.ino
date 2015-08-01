@@ -242,7 +242,7 @@ void setup() {
 	InitAnalogButtons();
 	InitConsoleButtons();
 	current_console_mode = CONSOLE_MENU;
-  current_frame = game_start_frame[current_game_type];    
+  current_frame = 0; // actually, game_start_frame[current_game_type];    
 	LoadGameFrame();  
 	randomSeed(analogRead(2));
 	Serial.println("STARTUP");
