@@ -66,10 +66,6 @@ char playerNames[(NUMBER_OF_TEAMS * PLAYERS_PER_TEAM)][10]; // create space for 
 
 char player_status[NUMBER_OF_TEAMS * PLAYERS_PER_TEAM]; //signed 8 bit
 
-
-
-
-
 byte last_player_pressed = 0;
 byte buzzing_teamplayer = 0;
 byte buzzing_player = 0;
@@ -84,30 +80,6 @@ ButtonLine buttonLines[NUMBER_OF_TEAMS+1]; // 0th "team" is console
 byte game_start_frame[3] = {2, 17, 18};
 
 
-// Screen types:
-#define ANIM_FAIL 6
-#define ANIM_GAME_OVER 9
-#define ANIM_MINOR_WIN 7
-#define ANIM_MINOR_FAIL 12
-#define ANIM_TIME 10
-#define ANIM_WIN 5
-#define HOST 1
-#define LIGHTNING 3
-#define PAUSE 4
-#define PLAYER 2
-#define START_CLOCK 11
-#define SYSTEM 13
-#define RESET 14
-
-// CONSOLE MODES
-#define CONSOLE_MENU 0
-#define SELECT_GAME_MODE 1
-#define SET_SHORT_TIMER 2
-#define SET_LONG_TIMER 3
-#define ENTER_PLAYERS 4
-#define GAME_IN_PROGRESS 5
-#define CALIBRATING_RESISTORS 6
-#define TEST_CONSOLE_BUTTONS 7
 
 unsigned long calibrate_tick = 0;
 // set to 1 to set up mode where we can get resistor values
@@ -331,7 +303,8 @@ void loop() {
         }
        break;
        
-       case ANIM_FAIL:
+       case ANIM_TEAM_FAIL:
+       case ANIM_PLAYER_FAIL:
        case ANIM_MINOR_FAIL:
        case ANIM_MINOR_WIN:
        case ANIM_TIME:
@@ -445,7 +418,7 @@ void LoadGameFrame(){
       ClearSubMode();
    break;
  
-   case ANIM_FAIL:
+   case ANIM_TEAM_FAIL:
       lcd.setBacklight(BACKLIGHT_YELLOW);
       DisplayModeTitle(FetchFrameName(current_frame));
       DQTeam(buzzing_team); // last buzzing team is ineliguble
@@ -454,6 +427,16 @@ void LoadGameFrame(){
 
       PlayGameAnimation(framecode[GO_TYPE]);
      break;
+     
+    case ANIM_PLAYER_FAIL:
+     lcd.setBacklight(BACKLIGHT_YELLOW);
+      DisplayModeTitle(FetchFrameName(current_frame));
+      DQTeam(buzzing_team); // last buzzing team is ineliguble
+      ClearNeoClock(); //reset the clock
+      ClearSubMode(); // erase currently displaying player/team
+    
+    
+    break;
    
    case ANIM_MINOR_FAIL: // failed steal
        ResetPlayerList();

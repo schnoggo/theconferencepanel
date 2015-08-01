@@ -62,3 +62,28 @@ struct consolebuttonvals{
   } console_buttons[3];
   
   
+// Screen types:
+#define ANIM_TEAM_FAIL 6
+#define ANIM_GAME_OVER 9
+#define ANIM_MINOR_WIN 7
+#define ANIM_MINOR_FAIL 12
+#define ANIM_TIME 10
+#define ANIM_WIN 5
+#define HOST 1
+#define LIGHTNING 3
+#define PAUSE 4
+#define PLAYER 2
+#define START_CLOCK 11
+#define SYSTEM 13
+#define RESET 14
+#define ANIM_PLAYER_FAIL 15
+
+// CONSOLE MODES
+#define CONSOLE_MENU 0
+#define SELECT_GAME_MODE 1
+#define SET_SHORT_TIMER 2
+#define SET_LONG_TIMER 3
+#define ENTER_PLAYERS 4
+#define GAME_IN_PROGRESS 5
+#define CALIBRATING_RESISTORS 6
+#define TEST_CONSOLE_BUTTONS 7

@@ -1,20 +1,48 @@
 // use the global: game_animation
 /*
-ANIM_FAIL:
+ANIM_TEAM_FAIL:
         ANIM_MINOR_FAIL:
         ANIM_MINOR_WIN:
         ANIM_TIME:
   */     
   
-  
+#define SEQUENCE_START 0
+#define LIGHT_ALL 1
+#define LIGHT_BUZZING_PLAYER 2
+#define LIGHT_BUZZING_TEAM 3
+#define LIGHT_OTHER_PLAYERS 4
+#define LIGHT_OTHER_TEAM 5
+#define CLEAR_ALL 6
+#define SEQUENCE_UNDEF 7
+#define SEQUENCE_END 8
+
+
 struct animframe{
+  byte type;
   int duration;
-  byte buzzer;
-  uint32_t color;
-  } animations[3] ={
-	{3000,100,0}, // current on pin, byte with bits set representing pressed buttons
-	{3000,100,0}, // current on pin, byte with bits set representing pressed buttons
-	{3000,100,0}, // current on pin, byte with bits set representing pressed buttons
+  byte r;
+  byte g;
+  byte b;
+  } animations[16] ={
+	{SEQUENCE_START,      ANIM_PLAYER_FAIL,0,0,0},
+  {LIGHT_BUZZING_PLAYER,1000,  255,000,000},
+  {LIGHT_BUZZING_PLAYER,1000,  000,000,000},
+  {LIGHT_BUZZING_PLAYER,1000,  255,000,000},
+  {SEQUENCE_END,0,  000,000,000},
+  
+  {SEQUENCE_START,      ANIM_TEAM_FAIL,0,0,0},
+  {LIGHT_BUZZING_TEAM,1000,  255,000,000},
+  {LIGHT_BUZZING_TEAM,1000,  000,000,000},
+  {LIGHT_BUZZING_TEAM,1000,  255,000,000},
+  {SEQUENCE_END,       0,  000,000,000},
+
+  {SEQUENCE_START,     ANIM_TIME,0,0,0},
+  {LIGHT_ALL,          1000,  255,000,000},
+  {LIGHT_ALL,          1000,  000,000,000},
+  {LIGHT_ALL,          1000,  255,000,000},
+  {LIGHT_ALL,          0,  000,000,000},
+  {SEQUENCE_END,       0,  000,000,000}
+
 };  
 
 
@@ -29,7 +57,11 @@ void ServiceGameAnimation(){
   int duration;
   switch (game_animation.state){
     case 1: // needs init
-    // mostly just trigger sound here?
+    // mostly just trigger sound here?\\\yte buzzing_teamplayer = 0;
+// byte buzzing_player = 0;
+//byte buzzing_team = 0;
+
+
 
   NeoWipe(pixel_ring.Color(0, 128, 0), 10); // Green
   NeoWipe(pixel_ring.Color(0, 90, 90), 20); 
@@ -38,7 +70,7 @@ void ServiceGameAnimation(){
     case 2: // main service routine
     
       switch(game_animation.animation){
-      case ANIM_FAIL:
+      case ANIM_TEAM_FAIL:
         duration = 2500;
         break;
         
