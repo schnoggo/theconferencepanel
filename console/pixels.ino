@@ -162,6 +162,22 @@ void LightOnePlayer(uint8_t player, uint8_t team, uint32_t color){
 
 
 
+void LightTeam(uint8_t team, uint32_t color){
+/* Light up whole team - don't overwrite exitsting lights
+
+*/
+
+  
+  byte i;
+  for(i=1; i<=PLAYERS_PER_TEAM; i++) {
+        LightPlayer(i, team, color, 0);
+      }
+    
+   pixel_ring.show();
+}
+
+
+
 
 int8_t NormalizeRingPos(int8_t realPos){
   realPos = realPos + CLOCK_RING_OFFSET;

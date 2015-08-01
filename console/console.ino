@@ -6,6 +6,7 @@
 #include <Adafruit_NeoPixel.h>
 #include <ClickEncoder.h>
 #include <TimerOne.h>
+#include "console.h"
 
 //   LCD SHIELD
 // The shield uses the I2C SCL and SDA pins. On classic Arduinos
@@ -16,23 +17,10 @@ Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 
 #define SERIAL_DEBUG false
 
-
-// These #defines make it easy to set the backlight color
-#define BACKLIGHT_RED 0x1
-#define BACKLIGHT_YELLOW 0x3
-#define BACKLIGHT_GREEN 0x2
-#define BACKLIGHT_TEAL 0x6
-#define BACKLIGHT_BLUE 0x4
-#define BACKLIGHT_VIOLET 0x5
-#define BACKLIGHT_WHITE 0x7
-
-
-
 #define PLAYERS_PER_TEAM 4
 #define NUMBER_OF_TEAMS 2 // should be able to support 3 teams with an Uno\
 
-
-// NEO PIXEL
+// NEOPIXEL
 #define NEOPIXEL_PIN 6
 #define CLOCK_RING_OFFSET 3
 #define CLOCK_RING_SIZE 16
@@ -49,7 +37,6 @@ Adafruit_NeoPixel pixel_ring = Adafruit_NeoPixel( CLOCK_RING_SIZE +(PLAYERS_PER_
 #define TEAM1PIN 0
 #define TEAM2PIN 1
 
-
 // Inputs on the main game console:
 #define CONSOLE_GO_PIN 4
 #define CONSOLE_STOP_PIN 3
@@ -58,12 +45,6 @@ Adafruit_NeoPixel pixel_ring = Adafruit_NeoPixel( CLOCK_RING_SIZE +(PLAYERS_PER_
 ClickEncoder *encoder;
 int16_t rotary_last, rotary_current;
 ClickEncoder::Button rotary_button;
-
-#define GO_GO 0
-#define GO_STOP 1
-#define GO_TIMER 2
-#define GO_PLAYER 3
-#define GO_TYPE 4
 
 #define TICKDURATION 2000
 #define MEMTICKDURATION 6000
@@ -76,40 +57,6 @@ unsigned long mem_tick;
 char lcd_line2[17]; // leave room for the terminating zero
 
 
-#define BUT1 1
-#define BUT2 2
-#define BUT3 4
-#define BUT4 8
-
-struct buttonmap{
-	unsigned int reading; // analog reading value
-	byte button_bits; // bit-packed list of which buttons are pressed. see BUT1 et al.
-} player_button_thresholds[17] ={
-	{555,0}, // current on pin, byte with bits set representing pressed buttons
-	{569, BUT1},
-	{586, BUT2},
-	{603, BUT1 | BUT2},
-	{630, BUT3},
-	{650, BUT1 | BUT3},
-	{672, BUT2 | BUT3},
-	{694, BUT1 | BUT2 | BUT3},
-	{746, BUT4},
-	{773, BUT1 | BUT4},
-	{804, BUT2 | BUT4},
-	{836, BUT1 | BUT2 | BUT4},
-	{888, BUT3 | BUT4},
-	{924, BUT1 | BUT3 | BUT4},
-	{974, BUT2 | BUT3 | BUT4},
-	{1020, BUT1 | BUT2 | BUT3 | BUT4}
-};
-
-struct consolebuttonvals{
-  byte state;
-  byte seen_up;
-  byte debounce_count;
-  byte prev_state;
-  } console_buttons[3];
-
 // struct has too much overhead for this, so simple globals:
 byte clock_display_state_sec = 0;
 byte clock_display_state_range = 0;
@@ -119,16 +66,7 @@ char playerNames[(NUMBER_OF_TEAMS * PLAYERS_PER_TEAM)][10]; // create space for 
 
 char player_status[NUMBER_OF_TEAMS * PLAYERS_PER_TEAM]; //signed 8 bit
 
-typedef struct {
-  char lastbutton; // which button was "down" during last poll (signed) -1 = no button
-  byte state;     // 0:still open,  1:from open to closed 2:from closed to open 3:still closed 4: unkown
-  unsigned int lastvalue; // last actual value from the pin
-  uint8_t repeat_count; // number of times this value has been read
-  unsigned long lastclosed; // time of last read that was closed
-  byte pin; // which line are we reading?
-  byte down_buttons; // bitmap of buttons currently down and ready to return
 
-} ButtonLine;
 
 
 
@@ -188,6 +126,7 @@ typedef struct {
  char state;     // 0:not active, 1:needs init, 2: playing
  unsigned long start_time; // time of last read that was closed
   byte animation; // which line are we reading?
+  int step;
 
 } gameanimation;
 

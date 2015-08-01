@@ -1,9 +1,28 @@
 // use the global: game_animation
+/*
+ANIM_FAIL:
+        ANIM_MINOR_FAIL:
+        ANIM_MINOR_WIN:
+        ANIM_TIME:
+  */     
+  
+  
+struct animframe{
+  int duration;
+  byte buzzer;
+  uint32_t color;
+  } animations[3] ={
+	{3000,100,0}, // current on pin, byte with bits set representing pressed buttons
+	{3000,100,0}, // current on pin, byte with bits set representing pressed buttons
+	{3000,100,0}, // current on pin, byte with bits set representing pressed buttons
+};  
+
 
 void PlayGameAnimation(byte animNum){
   game_animation.state = 1;
   game_animation.start_time = millis();
   game_animation.animation = animNum;
+  game_animation.step = 0;
 }
 void ServiceGameAnimation(){
   unsigned long end_time;
