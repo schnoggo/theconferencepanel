@@ -7,7 +7,7 @@ GAME_ALL_PLAY 2
 */
 
 
-const byte mode_instructions[25][5]  = {
+const byte mode_instructions[26][5]  = {
 { 1,  0,  0,  0, SYSTEM}, // 00 init
 { 2,  0,  0,  0, SYSTEM}, // 01 idle
 { 3,  0,  0,  0, HOST}, // 02 read Q
@@ -34,7 +34,7 @@ const byte mode_instructions[25][5]  = {
 { 22,  23,  0,  0, HOST}, // 21 JUDGE!
 { 0,  0,  24,  0, ANIM_WIN}, //22
 { 0,  0,  17,  0, ANIM_PLAYER_FAIL}, //23
-{17,  0,  0,  0, HOST} // 24 award points
+{17,  0,  0,  0, HOST}, // 24 award points
 { 0,  0,  17,  0, ANIM_TIME} // 25 Time expired
 
 };

@@ -425,7 +425,7 @@ void LoadGameFrame(){
       ClearNeoClock(); //reset the clock
       ClearSubMode(); // erase currently displaying player/team
 
-      PlayGameAnimation(framecode[GO_TYPE]);
+      PlayGameAnimation(ANIM_TEAM_FAIL);
      break;
      
     case ANIM_PLAYER_FAIL:
@@ -434,7 +434,7 @@ void LoadGameFrame(){
       DQTeam(buzzing_team); // last buzzing team is ineliguble
       ClearNeoClock(); //reset the clock
       ClearSubMode(); // erase currently displaying player/team
-    
+    PlayGameAnimation(ANIM_PLAYER_FAIL);
     
     break;
    
@@ -442,15 +442,15 @@ void LoadGameFrame(){
        ResetPlayerList();
        ClearNeoClock(); //reset the clock
        ClearSubMode(); // erase currently displaying player/tea
-        GoToFrame(framecode[GO_TIMER]); // nat actual animation
+    PlayGameAnimation(ANIM_MINOR_FAIL);
 
    break;
    
    case ANIM_TIME:
+     ClearNeoClock();
       lcd.setBacklight(BACKLIGHT_YELLOW);
       DisplayModeTitle(FetchFrameName(current_frame));
-      PlayGameAnimation(framecode[GO_TYPE]);
-      ClearNeoClock();
+      PlayGameAnimation(ANIM_TIME);
     break;
       
    case ANIM_WIN:
