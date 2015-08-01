@@ -77,7 +77,7 @@ ButtonLine buttonLines[NUMBER_OF_TEAMS+1]; // 0th "team" is console
 #define GAME_LIGHTNING 1
 #define GAME_ALL_PLAY 2
 
-byte game_start_frame[3] = {2, 17, 18};
+byte game_start_frame[3] = {15, 17, 18};
 
 
 
@@ -99,6 +99,7 @@ typedef struct {
  unsigned long start_time; // time of last read that was closed
   byte animation; // which line are we reading?
   int step;
+  int prev_step;
 
 } gameanimation;
 
@@ -270,17 +271,14 @@ void loop() {
       
        // transient frames:
         case RESET:
-          ResetPlayerList();
-          ClearNeoClock(); //reset the clock
-          ClearSubMode(); // erase currently displaying player/team   break;
-          ClearPlayerLights();
+         
           GoToFrame(framecode[GO_TIMER]);
 
         break; 
   
         case START_CLOCK:      
         //ResetPlayerList
-          StartCountdown(10); // ten seconds on the clock 
+          StartCountdown(11); // ten seconds on the clock 
           LockoutEarlyBuzzers();
           GoToFrame(framecode[GO_TIMER]);
        break;
@@ -320,6 +318,7 @@ void loop() {
           buzzing_team=(byte)((buzzing_teamplayer & 0xF0) >> 4);
                                                                               
           if (buzzing_player>0){
+            ClearSubMode();
             // depending on game type, we may need to lock out this player, the player team, or reset everything
             //ClearUserButtons();
             lcd.setCursor(0, 1);
@@ -409,6 +408,11 @@ void LoadGameFrame(){
       ResetPlayerList();
       ClearNeoClock(); //reset the clock
       ClearSubMode(); // erase currently displaying player/team   break;
+      
+          ClearPlayerLights();
+          
+          
+          
   break; 
  
    case SYSTEM:

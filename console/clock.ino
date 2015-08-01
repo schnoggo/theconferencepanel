@@ -51,7 +51,7 @@ void ResumeCountdown(){
 void TogglePause(){
   if (GameTimer.state == 2){
     ResumeCountdown();
-     DisplaySubMode("      ");
+     ClearSubMode();
   } else {
     PauseCountdown();
     DisplaySubMode("paused");

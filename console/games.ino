@@ -14,7 +14,7 @@ const byte mode_instructions[26][5]  = {
 { 0,  0,  4,  0, START_CLOCK}, //03 start clock
 {200, 15, 10,  5, PLAYER}, // 04 wait for answer
 {11,  9,  0,  0, HOST}, // 05 JUDGE!
-{200, 2, 10,  7, PLAYER}, //06 Steal (wait for answer)
+{200, 15, 10,  7, PLAYER}, //06 Steal (wait for answer)
 {11, 15,  0,  0, HOST}, // 07 JUDGE! (steal) NO was 13
 { 15,  15,  0,  0, HOST}, // 08 award points
 { 0,  0, 12,  0, ANIM_TEAM_FAIL}, //09 

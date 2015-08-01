@@ -87,13 +87,22 @@ void ServiceGameAnimation(){
   switch (game_animation.state){
     case 1: // needs init
     // mostly just trigger sound here?
-  game_animation.start_time = millis();
-  game_animation.state = 2;
+    game_animation.start_time = millis();
+    game_animation.state = 2;
+    game_animation.prev_step = 3000;
+    
     break;
     
     case 2: // main service routine
       // load sequence frame:
         int duration = animations[game_animation.step].duration;
+        end_time = game_animation.start_time + duration;
+        if (end_time < millis()){
+          game_animation.step++;
+        } 
+    
+        if (game_animation.step != game_animation.prev_step){
+        game_animation.prev_step = game_animation.step;
         uint32_t c = pixel_ring.Color(animations[game_animation.step].r, animations[game_animation.step].g, animations[game_animation.step].b);
         switch (animations[game_animation.step].type){
           
@@ -119,18 +128,15 @@ void ServiceGameAnimation(){
           
           break;  
         
-        default:
-        NeoWipe(pixel_ring.Color(0, 255, 255), 5); 
-        
+      //  default:
+     //   NeoWipe(pixel_ring.Color(0, 255, 255), 5); 
+        }
         
         
         }
      
     
-    end_time = game_animation.start_time + duration;
-    if (end_time < millis()){
-      game_animation.step++;
-    } 
+  
     break; // main service routine
   }
  // CheckMemoryUse();
