@@ -43,6 +43,7 @@ Adafruit_NeoPixel pixel_ring = Adafruit_NeoPixel( CLOCK_RING_SIZE +(PLAYERS_PER_
 #define CONSOLE_CANCEL_PIN 5
 
 #define CONSOLE_LIGHT_PINS 9
+#define CONSOLE_BRIGHTNESS_FLOOR 60
 unsigned long console_light_timer = 0;
 
 
@@ -157,7 +158,7 @@ void setup() {
 	next_tick = millis() + TICKDURATION;
 	InitAnalogButtons();
 	InitConsoleButtons();
-  PlayConsoleButtonAnimation(0, 12);
+  PlayConsoleButtonAnimation(0, 9);
 	current_console_mode = CONSOLE_MENU;
   current_frame = 0; // actually, game_start_frame[current_game_type];
 	LoadGameFrame();
@@ -542,7 +543,12 @@ void CheckMemoryUse(){
 }
 
 void PlayConsoleButtonAnimation(byte button_num, int8_t new_dir){
+  // dir of 0 - stop animaiton and go black
+  // dir positive integer - step size of ramp animation
+  // dir negative integer - TBD
   console_buttons[button_num].anim_dir =  new_dir;
+  //console_buttons[button_num].brightness = max(CONSOLE_BRIGHTNESS_FLOOR, CONSOLE_BRIGHTNESS_FLOOR - new_dir);
+  console_buttons[button_num].brightness =  CONSOLE_BRIGHTNESS_FLOOR - new_dir;
 
 }
 void ServiceConsoleButtonAnimations(){
@@ -557,28 +563,30 @@ void ServiceConsoleButtonAnimations(){
   if (console_light_timer <= now){
     for (i=0; i < 2; i++){
       // figure new brightness
-      new_brightness = console_buttons[i].brightness + console_buttons[i].anim_dir;
-/*
-      Serial.print("but  ");
-      Serial.print(i);
-      Serial.print(": ");
-      Serial.println(new_brightness);
-*/
 
-      if ( (new_brightness <0) || (new_brightness>255) ){
-        console_buttons[i].anim_dir = 0 - console_buttons[i].anim_dir;
-        if  (new_brightness <0) {
-          new_brightness = 0;
-        } else {
-          new_brightness = 255;
-        }
+      new_brightness = console_buttons[i].brightness + console_buttons[i].anim_dir;
+      if  (new_brightness < CONSOLE_BRIGHTNESS_FLOOR) {
+          new_brightness = CONSOLE_BRIGHTNESS_FLOOR;
+          console_buttons[i].anim_dir = 0 - console_buttons[i].anim_dir; // flip direction
+      } else if (new_brightness>255) {
+        new_brightness = 255;
+        console_buttons[i].anim_dir = 0 - console_buttons[i].anim_dir; // flip direction
       }
+      if (0 == console_buttons[i].anim_dir){new_brightness = 0;} //if dir is 0 turn it off
 
       if (new_brightness != console_buttons[i].brightness){
         console_buttons[i].brightness = new_brightness;
         analogWrite(console_buttons[i].anim_pin, console_buttons[i].brightness);
+  /*
+        if (0 == i){
+        Serial.print("but  ");
+        Serial.print(i);
+        Serial.print(": ");
+        Serial.println(new_brightness);
+        }
+        */
       }
-    }
-    console_light_timer = now + 40;
-  }
+    } // step through buttons
+    console_light_timer = now + 30;
+  } // timer is up
 }
