@@ -59,9 +59,12 @@ struct consolebuttonvals{
   byte seen_up;
   byte debounce_count;
   byte prev_state;
+	uint8_t brightness;
+	int8_t anim_dir;
+	byte anim_pin;
   } console_buttons[3];
-  
-  
+
+
 // Screen types:
 #define ANIM_TEAM_FAIL 6
 #define ANIM_GAME_OVER 9

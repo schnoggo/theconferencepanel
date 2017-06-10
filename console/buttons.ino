@@ -9,7 +9,7 @@ NUMBER_OF_TEAMS (define) -- number of lines to poll +1 (The size of the buttonLi
  unsigned long lastclosed; // time of last read that was closed
   byte pin; // which line are we reading?
   byte down_buttons;
-  
+
 player_button_thresholds - list of current values for buttons on this branch
 
 */
@@ -17,7 +17,7 @@ player_button_thresholds - list of current values for buttons on this branch
 void InitAnalogButtons(){
   // 0 is console
   // 1-3 are teams
-  
+
 /* fill in the starting values for   buttonLines global structure
 
 */
@@ -30,7 +30,7 @@ void InitAnalogButtons(){
     buttonLines[i].lastbutton = 0;
     buttonLines[i].repeat_count = 0;
     }
-  
+
   buttonLines[1].pin = TEAM1PIN;
   buttonLines[2].pin = TEAM2PIN;
   calibrate_tick = 0;
@@ -53,13 +53,13 @@ void LockoutEarlyBuzzers() {
 }
 
 byte PollUserButtons(byte lockout) {
-/* 
+/*
 Inputs: none (just globals)
 Hardware: Uses 3 analog pins to determine which button is being pushed
 Globals: UserButton{
     lastbutton: int8 value of last button pressed
     state: int8 state of last button read {
-      0:still open, 
+      0:still open,
       1:from open to closed
       2:from closed to closed
       3:still closed
@@ -68,7 +68,7 @@ Globals: UserButton{
     lastclosed: unsigned long time of last read that was closed
     TEAM1PIN
     player_button_thresholds
-    
+
  Outputs:
    updates UserButton
    returns player number of newly pressed button (0) for no press.
@@ -81,32 +81,32 @@ Globals: UserButton{
     byte one_button;
     unsigned int team_values[NUMBER_OF_TEAMS+1]; // was v
     unsigned int v;
-    
+
     byte possible_winners[NUMBER_OF_TEAMS * PLAYERS_PER_TEAM];
     byte winner_counter = 0;
     retTeam = 0;
     // debug stuff:
     char outnum[9];
-    
-    
+
+
     // if we start seeing team bias, build an array of teams here to determine
     // the order in which we test them.
-    
-    
-    // First grab raw values for each team: 
+
+
+    // First grab raw values for each team:
   for (i=1; i <= NUMBER_OF_TEAMS; i++) { // channel 0 is the console - start with 1
     team_values[i]= analogRead(buttonLines[i].pin);
-/*    
+/*
     Serial.print("Team ");
     Serial.print(i);
     Serial.print(": ");
     Serial.println(team_values[i]);
  */
- 
+
   }
 
 
-    
+
   for (i=1; i <= NUMBER_OF_TEAMS; i++) { // channel 0 is the console - start with 1
     v=team_values[i];
     buttonLines[i].down_buttons=0; // code for currently depressed buttons. 0 if nothing down.
@@ -115,7 +115,7 @@ Globals: UserButton{
       if (buttonLines[i].repeat_count < 254) {buttonLines[i].repeat_count++;} // count it
         if (buttonLines[i].repeat_count > DEBOUNCE_REPEAT) {
           // stable value - maybe count it as a button press
-          
+
           if (current_console_mode==CALIBRATING_RESISTORS and (i==2)){
           // display the stable value:
             if ((millis() - calibrate_tick ) > 400) {
@@ -144,25 +144,25 @@ Globals: UserButton{
       buttonLines[i].lastvalue = v;
       buttonLines[i].repeat_count = 0;
     }
-     
+
      // at this point, we may have a bit-packed array of possible players for this team.
      // that value is in  buttonLines[i].down_buttons
-              
-  }  
-  
+
+  }
+
    // all teams have been scanned.
    // look through all pressed buttons.
-   // 
-   
+   //
+
    // we should probably handle lockouts here...
-/*   
+/*
 sprintf(outnum, "%04d", v);
 lcd.setCursor(10, 1);
 lcd.print(outnum);
 */
 
   // build an array of possible winners
-for (i=1; i<=NUMBER_OF_TEAMS; i++) { 
+for (i=1; i<=NUMBER_OF_TEAMS; i++) {
     for (j=1; j<=PLAYERS_PER_TEAM; j++) {
       if (buttonLines[i].down_buttons & (1<<(j-1))) { // button was down
        if (lockout){
@@ -182,7 +182,7 @@ retPlayer = 0;
 if (winner_counter > 0){
   i = random( winner_counter);
   retPlayer = possible_winners[i];
-}      
+}
   return retPlayer;
 }
 
@@ -196,24 +196,24 @@ byte PollConsoleButtons(byte lookingfor) {
   1 - GO button
   2 - STOP button
   3 - dial button
-  
+
   states
     0 up
     1 down
     2 waiting to settle
     3 still down
     4 unknown
-  
+
   Returns:
   1/true - yup this button is pressed
   0/false - this button is not pressed
   */
-  
-  
-  
+
+
+
   byte retVal=0; // false unless we find a debounced and non-repeating button
-  
-  
+
+
   for (i=0; i<3; i++) {
     byte currently_down = 0;
 
@@ -222,16 +222,16 @@ byte PollConsoleButtons(byte lookingfor) {
         case 0:
           if (digitalRead(CONSOLE_GO_PIN) == LOW){ currently_down = 1;}
         break;
-        
+
         case 1:
           if (digitalRead(CONSOLE_STOP_PIN) == LOW){ currently_down = 1;}
         break;
-        
+
         case 3:
         // not implemented
         break;
       }
-  
+
         if (SERIAL_DEBUG){
          if (currently_down){
           Serial.print(i);
@@ -240,10 +240,10 @@ byte PollConsoleButtons(byte lookingfor) {
           Serial.print(" state: ");
           Serial.println(console_buttons[i].state);
           }
-          }          
+          }
 
-          
-         
+
+
       switch (console_buttons[i].state){
         case 0: //up
           if (currently_down){
@@ -254,7 +254,7 @@ byte PollConsoleButtons(byte lookingfor) {
             console_buttons[i].seen_up = 1;
           }
         break;
-                
+
         case 1: //down
           if (currently_down){
             console_buttons[i].seen_up = 0; // need to see it up before we count this again
@@ -264,7 +264,7 @@ byte PollConsoleButtons(byte lookingfor) {
             console_buttons[i].seen_up = 1;
           }
         break;
-                
+
         case 2: // waiting for bounce to settle
           if (currently_down){
             if (console_buttons[i].debounce_count < 100){console_buttons[i].debounce_count++;}
@@ -276,7 +276,7 @@ byte PollConsoleButtons(byte lookingfor) {
             console_buttons[i].seen_up = 1;
           }
         break;
-      
+
         case 3: // still down
           if (currently_down){
           } else {
@@ -284,16 +284,16 @@ byte PollConsoleButtons(byte lookingfor) {
             console_buttons[i].seen_up = 1;
           }
         break;
-      
+
         case 4: //undefined state
           if (currently_down){
             console_buttons[i].seen_up = 0;
             console_buttons[i].state = 1; // down
           } else {
             console_buttons[i].state = 0; // up
-            console_buttons[i].seen_up = 1;          
+            console_buttons[i].seen_up = 1;
           }
-        break;    
+        break;
       }
     }
     /* if (SERIAL_DEBUG){
@@ -303,12 +303,12 @@ byte PollConsoleButtons(byte lookingfor) {
       if (console_buttons[lookingfor-1].state == 1){
         if (SERIAL_DEBUG){
           Serial.print("button ");
-          Serial.println(lookingfor);  
+          Serial.println(lookingfor);
         }
         console_buttons[lookingfor-1].state = 3; // still down
         retVal = 1;
       }
-      
+
       // debug:
       /*
         uint32_t c;
@@ -332,22 +332,24 @@ byte PollConsoleButtons(byte lookingfor) {
         pixel_ring.show();
 */
 
-    
+
     for (i=0; i<3; i++) {
       console_buttons[i].prev_state = console_buttons[i].state;
-    }     
-                
+    }
+
   return retVal;
 }
 
 
 void InitConsoleButtons() {
   byte i;
-  for (i=0; i<3; i++) { 
+  for (i=0; i<3; i++) {
     console_buttons[i].state = 4; //unknown
     console_buttons[i].seen_up = 0; //have seen an up state yet
     console_buttons[i].debounce_count = 0; //clear debounce counter
     console_buttons[i].prev_state = 99;
+    console_buttons[i].brightness = 0;
+    console_buttons[i].anim_dir = 0;
+    console_buttons[i].anim_pin = i + CONSOLE_LIGHT_PINS;
   }
 }
-
