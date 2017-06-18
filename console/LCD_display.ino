@@ -1,12 +1,12 @@
 
 void DisplayModeTitle(char* title){
   /* Writes a centered line of text out to tthe LCD display.
-  
+
   this version does not use the string library.
   next version will not build intermediate char array - just write directly to display
-  
+
   */
-  
+
    // erase the line by padding out the title with spaces
   byte titlelen = strlen(title);
   int leftpad = (16-titlelen)/2;
@@ -16,7 +16,7 @@ void DisplayModeTitle(char* title){
   for (i=0; i <16; i++) {
       outStr[i] = ' ';
     }
-  
+
   if ( titlelen == 15 ) {
      strcpy(outStr, title);
   } else if (leftpad>0) {  //center
@@ -32,11 +32,13 @@ void DisplayModeTitle(char* title){
 
   lcd.setCursor(0, 0);
   lcd.print(outStr);
+  dprint("LCD: ");
+  dprintln(outStr);
 
 }
 
 void ClearSubMode(){
-   lcd.setCursor(0, 1);
+  lcd.setCursor(0, 1);
   lcd.print("                ");
 }
 
@@ -44,12 +46,12 @@ void ClearSubMode(){
 
 void DisplaySubMode(char* title){
   /* Writes a centered line of text out to tthe LCD display.
-  
+
   this version does not use the string library.
   next version will not build intermediate char array - just write directly to display
-  
+
   */
-  
+
    // erase the line by padding out the title with spaces
   byte titlelen = strlen(title);
   int leftpad = (16-titlelen)/2;
@@ -59,7 +61,7 @@ void DisplaySubMode(char* title){
   for (i=0; i <16; i++) {
       outStr[i] = ' ';
     }
-  
+
   if ( titlelen == 15 ) {
      strcpy(outStr, title);
   } else if (leftpad>0) {  //center
@@ -75,5 +77,7 @@ void DisplaySubMode(char* title){
 
   lcd.setCursor(0, 1);
   lcd.print(outStr);
+  dprint("SUB: ");
+  dprintln(outStr);
 
 }

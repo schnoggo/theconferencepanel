@@ -90,3 +90,19 @@ struct consolebuttonvals{
 #define GAME_IN_PROGRESS 5
 #define CALIBRATING_RESISTORS 6
 #define TEST_CONSOLE_BUTTONS 7
+
+
+
+#define PRDBG
+
+
+
+// macros:
+// create Serial.print macros:
+#ifdef PRDBG
+#define dprint(ccc) Serial.print(ccc);
+#define dprintln(ccc) Serial.println(ccc);
+#else
+#define dprint(ccc) ""
+#define dprintln(ccc) ""
+#endif

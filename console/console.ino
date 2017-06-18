@@ -42,7 +42,8 @@ Adafruit_NeoPixel pixel_ring = Adafruit_NeoPixel( CLOCK_RING_SIZE +(PLAYERS_PER_
 #define CONSOLE_STOP_PIN 3
 #define CONSOLE_CANCEL_PIN 5
 
-#define CONSOLE_LIGHT_PINS 9
+byte console_light_pins[3] = {11, 13, 2};
+
 #define CONSOLE_BRIGHTNESS_FLOOR 60
 unsigned long console_light_timer = 0;
 
@@ -153,17 +154,18 @@ void setup() {
 	digitalWrite(A1, LOW); // analog - do not use internal resistor - already in the circuit
 	analogRead (TEAM1PIN) ; // do a dummy read to get the pin in the right state?
 
- // InitRotary(10, 9, 8); // only activate for certain modes
+  InitRotary(10, 9, 8); // only activate for certain modes
 	InitGameAnimations();
 	next_tick = millis() + TICKDURATION;
 	InitAnalogButtons();
 	InitConsoleButtons();
   PlayConsoleButtonAnimation(0, 9);
+  PlayConsoleButtonAnimation(1, 18);
 	current_console_mode = CONSOLE_MENU;
   current_frame = 0; // actually, game_start_frame[current_game_type];
 	LoadGameFrame();
 	randomSeed(analogRead(2));
-	Serial.println("STARTUP");
+	dprintln("STARTUP");
 
 }
 
@@ -175,24 +177,23 @@ void loop() {
   unsigned long now = millis(); // "now" get set at beginning of every loop
   byte need2init_mode = ConsoleModeChanged();
   if (need2init_mode){
-    if (SERIAL_DEBUG){
-      Serial.print("Mode change:");
-      Serial.println(current_console_mode);
-    }
+      dprint("Mode change:");
+      dprintln(current_console_mode);
   }
 
   switch (current_console_mode) {
 
     case CONSOLE_MENU:
+    if(need2init_mode){
      DisplayModeTitle("Main Menu");
+    }
 
-    /*
     rotary_current += encoder->getValue();
 
     if (rotary_current != rotary_last) {
       rotary_last = rotary_current;
-      Serial.print("Encoder Value: ");
-      Serial.println(rotary_current);
+      dprint("Encoder Value: ");
+      dprintln(rotary_current);
       lcd.setCursor(0, 1);
       lcd.print("        ");
       lcd.setCursor(0, 1);
@@ -211,8 +212,8 @@ void loop() {
       if (rotary_button == ClickEncoder::Clicked){lcd.print("CLIK");}
       if (rotary_button == ClickEncoder::DoubleClicked){lcd.print("DBL");}
 }
-*/
-      current_console_mode = SELECT_GAME_MODE;
+
+      //current_console_mode = SELECT_GAME_MODE;
       //current_console_mode = TEST_CONSOLE_BUTTONS;
 
 
@@ -220,7 +221,9 @@ void loop() {
 
 
     case CALIBRATING_RESISTORS:
+      if(need2init_mode){
      DisplayModeTitle("Calibrate");
+   }
       PollUserButtons(false);
     break;
 
@@ -533,10 +536,10 @@ int FreeRam ()
 void CheckMemoryUse(){
   if ((millis() -  MEMTICKDURATION) > mem_tick){
     mem_tick = millis();
-    Serial.print("mem ");
-    Serial.print(mem_tick);
-    Serial.print(": ");
-    Serial.println(FreeRam());
+    dprint("mem ");
+    dprint(mem_tick);
+    dprint(": ");
+    dprintln(FreeRam());
     mem_tick++;
   }
 
@@ -579,10 +582,10 @@ void ServiceConsoleButtonAnimations(){
         analogWrite(console_buttons[i].anim_pin, console_buttons[i].brightness);
   /*
         if (0 == i){
-        Serial.print("but  ");
-        Serial.print(i);
-        Serial.print(": ");
-        Serial.println(new_brightness);
+        dprint("but  ");
+        dprint(i);
+        dprint(": ");
+        dprintln(new_brightness);
         }
         */
       }

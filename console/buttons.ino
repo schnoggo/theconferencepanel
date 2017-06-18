@@ -350,6 +350,9 @@ void InitConsoleButtons() {
     console_buttons[i].prev_state = 99;
     console_buttons[i].brightness = 0;
     console_buttons[i].anim_dir = 0;
-    console_buttons[i].anim_pin = i + CONSOLE_LIGHT_PINS;
+  //  console_buttons[i].anim_pin = i + CONSOLE_LIGHT_PINS;
+    console_buttons[i].anim_pin = console_light_pins[i];
+  // pinMode( i + CONSOLE_LIGHT_PINS, OUTPUT);
+  pinMode(console_light_pins[i], OUTPUT);
   }
 }
