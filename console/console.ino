@@ -79,11 +79,12 @@ byte buzzing_team = 0;
 ButtonLine buttonLines[NUMBER_OF_TEAMS+1]; // 0th "team" is console
 
 // Game Types
+#define NUMBER_OF_GAME_TYPES 3
 #define GAME_TEAM_STEAL 0
 #define GAME_LIGHTNING 1
 #define GAME_ALL_PLAY 2
 
-byte game_start_frame[3] = {15, 17, 18};
+byte game_start_frame[NUMBER_OF_GAME_TYPES] = {15, 17, 18};
 
 
 
@@ -122,7 +123,11 @@ typedef struct {
 timer GameTimer; // global game time
 
 
-
+// globals for menu operations
+int menu_cursor = 0;
+int menu_last_cursor = 0xFF;
+int accumulated_rotary_encoder_delta = 0;
+#define MENU_ROTARY_DELTA_THRESHOLD 3
 
 
 byte i; // generic, global index to avoid memory thrashing
@@ -165,6 +170,9 @@ void setup() {
   current_frame = 0; // actually, game_start_frame[current_game_type];
 	LoadGameFrame();
 	randomSeed(analogRead(2));
+
+
+
 	dprintln("STARTUP");
 
 }
@@ -188,20 +196,31 @@ void loop() {
      DisplayModeTitle("Main Menu");
     }
 
-    rotary_current += encoder->getValue();
+    accumulated_rotary_encoder_delta += encoder->getValue(); //signed
 
-    if (rotary_current != rotary_last) {
-      rotary_last = rotary_current;
-      dprint("Encoder Value: ");
-      dprintln(rotary_current);
-      lcd.setCursor(0, 1);
-      lcd.print("        ");
-      lcd.setCursor(0, 1);
+    if (abs(accumulated_rotary_encoder_delta) >= MENU_ROTARY_DELTA_THRESHOLD){
+      // No built-in sgn() !!
+      if (accumulated_rotary_encoder_delta > 0){
+        menu_cursor += 1;
+      } else {
+        menu_cursor -= 1;
+      }
+      if (menu_cursor < 0 ) {
+         menu_cursor = NUMBER_OF_GAME_TYPES - 1;
+       } else if (menu_cursor >= NUMBER_OF_GAME_TYPES){
+         menu_cursor = 0;
+       }
+      accumulated_rotary_encoder_delta = 0;
+    }
 
+    if (menu_cursor != menu_last_cursor) {
+        menu_last_cursor = menu_cursor;
+        DisplaySubMode(FetchGameName(menu_cursor));
+// sub
     }
 
     rotary_button = encoder->getButton();
-
+/*
     if (rotary_button != ClickEncoder::Open){
      lcd.setCursor(8, 1);
       lcd.print("        ");
@@ -212,6 +231,7 @@ void loop() {
       if (rotary_button == ClickEncoder::Clicked){lcd.print("CLIK");}
       if (rotary_button == ClickEncoder::DoubleClicked){lcd.print("DBL");}
 }
+*/
 
       //current_console_mode = SELECT_GAME_MODE;
       //current_console_mode = TEST_CONSOLE_BUTTONS;
