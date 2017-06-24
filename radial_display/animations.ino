@@ -1,7 +1,7 @@
 
 void Panel(){
   // light panel
-  // Serial.print("Panel() ... ");
+dprintln("Panel() ... ");
   int startingmode = displaymode;
   colorWipe(Color(255, 240, 240), 0);
 
@@ -263,7 +263,7 @@ void VUMeter(){
 }
 
 void Spinner(){
-  // Serial.print("Spinner() ... ");
+dprintln("Spinner() ... ");
     int startingmode = displaymode;
     int wheelSlotCount=MAX_DISPLAY_ANGLE+MAX_DISPLAY_RADIUS+1; //display is only half-circle
     int i, j, x, wheelRot;
@@ -375,7 +375,7 @@ void TestRings(){
 }
 
 void AnimatedRings(){
-  // Serial.print("AnimatedRings() ... ");
+  dprintln("AnimatedRings() ... ");
   int startingmode = displaymode; // global display mode
   int rmax = 0;
   int newRing, delta;

@@ -102,7 +102,7 @@ void setup() {
 
   // init rgb addressible strip & polar coordinate array:
   strip.begin();
-  displaymode = 1;
+  displaymode = 5;
 
   // Update LED contents, to start they are all 'off'
   strip.show();
@@ -145,7 +145,7 @@ void setup() {
 
 void loop() {
 
-  /*
+
 //  CheckMemoryUse();
   int i,j;
   int lastmode=displaymode;
@@ -177,8 +177,8 @@ void loop() {
       Panel();
     break;
 	}
-  */
-  ServiceBackground();
+
+//  ServiceBackground();
 /*
         Serial.print("old mode: ");
         Serial.print(lastmode);
