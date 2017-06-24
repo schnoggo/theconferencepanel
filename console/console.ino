@@ -171,13 +171,8 @@ void setup() {
 	LoadGameFrame();
 	randomSeed(analogRead(2));
 
-
-
 	dprintln("STARTUP");
-
 }
-
-
 
 
 void loop() {
@@ -220,18 +215,23 @@ void loop() {
     }
 
     rotary_button = encoder->getButton();
-/*
+
     if (rotary_button != ClickEncoder::Open){
-     lcd.setCursor(8, 1);
-      lcd.print("        ");
-      lcd.setCursor(8, 1);
+  /*
       if (rotary_button == ClickEncoder::Pressed){lcd.print("PRESS");}
       if (rotary_button == ClickEncoder::Held){lcd.print("HOLD");}
       if (rotary_button == ClickEncoder::Released){lcd.print("REL");}
       if (rotary_button == ClickEncoder::Clicked){lcd.print("CLIK");}
       if (rotary_button == ClickEncoder::DoubleClicked){lcd.print("DBL");}
+      */
+    if (rotary_button == ClickEncoder::Clicked){
+
+      current_console_mode = GAME_IN_PROGRESS;
+      current_game_type = menu_cursor;
+      current_frame = game_start_frame[current_game_type];
+    }
 }
-*/
+
 
       //current_console_mode = SELECT_GAME_MODE;
       //current_console_mode = TEST_CONSOLE_BUTTONS;
