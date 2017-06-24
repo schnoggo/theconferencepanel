@@ -267,7 +267,13 @@ dprintln("Spinner() ... ");
     int startingmode = displaymode;
     int wheelSlotCount=MAX_DISPLAY_ANGLE+MAX_DISPLAY_RADIUS+1; //display is only half-circle
     int i, j, x, wheelRot;
+    int spoke;
     int WheelPos;
+    int velocity = 1;
+    int acceleration = 4; // signed step size
+    int accel_step = 0; //actual accel =  1/ acceleration
+    int friction = 2;
+    int impetus_duration = 10;
 
   wheelRot=0;
   int r,g,b;
@@ -323,23 +329,36 @@ dprintln("Spinner() ... ");
   }
   }
    while (displaymode == startingmode) {
-    ServiceBackground();
+  //  ServiceBackground();
    // draw each spoke with updated color
 
 
-     for (i=0; i <= MAX_DISPLAY_ANGLE; i++){
-       x=i-wheelRot;
+     for (spoke=0; spoke <= MAX_DISPLAY_ANGLE; spoke++){
+       x = spoke - wheelRot;
        if (x<0){
        x=x+(wheelSlotCount-1);
      }
 
        for (j=1; j <= MAX_DISPLAY_RADIUS; j++){ // dont need to update the center
-        setPolarPixelColor(i, j, spinnercolors[x]);
+        setPolarPixelColor(spoke, j, spinnercolors[x]);
        }
      }
    // set the center
   strip.show();
-     BackGroundDelay(50);
+    // BackGroundDelay(50);
+     BackGroundDelay(100-abs(velocity));
+     // apply acceleration:
+     if (impetus_duration > 0){
+       impetus_duration--;
+       if (accel_step++ > acceleration){
+         velocity = velocity + 1;
+       }
+     }
+      velocity = velocity - friction;
+     // bound velocity:
+     velocity = min(max(velocity, 0), 80);
+
+
      wheelRot++;
      if (wheelRot>=wheelSlotCount){
        wheelRot=0;
