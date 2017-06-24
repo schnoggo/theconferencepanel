@@ -129,26 +129,21 @@ void ServiceBackground(){
     UpdateSampledAudio();
 
 
-    #define BUTTON_PIN 2
-    uint8_t button_state = 0;
-    uint8_t prev_button_state = 0xFF;
-    uint8_t button_seen_up = 0;
-    unsigned long button_timer = 0;
-
 
     if (digitalRead(BUTTON_PIN) == HIGH){
-      dprintln("PRESSED");
       button_state = 1;
     } else {
       button_state = 0;
     }
+
     if(button_state == prev_button_state){
       if (now - button_state_start_time > BUTTON_BOUNCE_TIME){
         // button is stable: update
         if (button_state){ // button pressed
           if (button_seen_up){
             // new press - actually do something
-            dprintln('button!');
+            dprintln("button!");
+            button_seen_up  = 0;
           }
         } else { // but not pressed:
           button_seen_up =  1;
