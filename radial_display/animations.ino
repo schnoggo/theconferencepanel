@@ -346,17 +346,30 @@ dprintln("Spinner() ... ");
    // set the center
   strip.show();
     // BackGroundDelay(50);
-     BackGroundDelay(100-abs(velocity));
+     BackGroundDelay(200-abs(velocity));
      // apply acceleration:
      if (impetus_duration > 0){
        impetus_duration--;
        if (accel_step++ > acceleration){
          velocity = velocity + 1;
        }
+     } else {
+       if( random(10+velocity) == 1){
+         dprintln("impulse");
+        //impetus_duration =  random(50)+ 5;
+        //impetus_duration =  200;
+        //acceleration = 1;
+        //accel_step = 0;
+      //  velocity = velocity + 50;
+      velocity =  180;
+      //  accel_step = random(8)+1;
+
+       }
+
      }
       velocity = velocity - friction;
      // bound velocity:
-     velocity = min(max(velocity, 0), 80);
+     velocity = min(max(velocity, 0), 180);
 
 
      wheelRot++;
